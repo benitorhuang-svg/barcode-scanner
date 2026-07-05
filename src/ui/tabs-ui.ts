@@ -28,6 +28,8 @@ export function initTabsUI(refs: DomRefs): void {
       const targetPane = panesById.get(targetId);
       if (targetPane) {
         targetPane.classList.add('active');
+        // 切換頁籤時置頂
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
 
       // Dispatch event for other modules (e.g., to pause camera)
