@@ -28,7 +28,9 @@ async function generateQR(refs: DomRefs): Promise<void> {
     refs.qrPreviewWrap.style.display = 'flex';
     refs.btnDownloadQR.disabled = false;
   } catch (err) {
-    console.error('QR Code generation failed:', err);
+    if (import.meta.env.DEV) {
+      console.error('QR Code generation failed:', err);
+    }
     showToast('❌ 產生失敗，請確認輸入內容');
   }
 }

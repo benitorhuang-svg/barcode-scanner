@@ -56,8 +56,10 @@ export function getFormatName(format: unknown): string {
     return ZXING_NUMERIC_MAP[str];
   }
 
-  const lower = str.toLowerCase().replace(/_/g, ' ');
-  const match = STRING_PATTERNS.find((p) => lower.includes(p.keyword));
+  const normalized = str.toLowerCase().replace(/[\s_-]/g, '');
+  const match = STRING_PATTERNS.find((p) =>
+    normalized.includes(p.keyword.replace(/[\s_-]/g, '')),
+  );
 
   return match?.label ?? str;
 }

@@ -1,50 +1,31 @@
 /// <reference lib="webworker" />
+
 import { BarcodeDetector } from 'barcode-detector/pure';
+import { SUPPORTED_BARCODE_FORMATS } from './barcode-formats';
 
-const SUPPORTED_FORMATS = [
-  'code_128',
-  'code_39',
-  'ean_13',
-  'ean_8',
-  'upc_a',
-  'upc_e',
-  'itf',
-  'codabar',
-  'qr_code',
-] as const;
-
-let detector: BarcodeDetector | null = null;
-
-// Initialize detector once
-detector = new BarcodeDetector({
-  formats: [...SUPPORTED_FORMATS],
+const detector = new BarcodeDetector({
+  formats: [...SUPPORTED_BARCODE_FORMATS],
 });
 
-self.addEventListener('message', async (e: MessageEvent) => {
-  const bitmap = e.data as ImageBitmap;
+self.addEventListener('message', async (event: MessageEvent) => {
+  const bitmap = event.data as ImageBitmap;
 
   try {
-    if (detector) {
-      const barcodes = await detector.detect(bitmap);
-      
-      if (barcodes.length > 0) {
-        const bc = barcodes[0];
-        // Send back the first found barcode
-        self.postMessage({
-          success: true,
-          rawValue: bc.rawValue,
-          format: bc.format,
-        });
-      } else {
-        self.postMessage({ success: false });
-      }
+    const barcodes = await detector.detect(bitmap);
+
+    if (barcodes.length > 0) {
+      const barcode = barcodes[0];
+      self.postMessage({
+        success: true,
+        rawValue: barcode.rawValue,
+        format: barcode.format,
+      });
     } else {
       self.postMessage({ success: false });
     }
-  } catch (err) {
-    self.postMessage({ success: false, error: String(err) });
+  } catch (error) {
+    self.postMessage({ success: false, error: String(error) });
   } finally {
-    // IMPORTANT: Close the ImageBitmap to prevent memory leaks in the worker
     bitmap.close();
   }
 });

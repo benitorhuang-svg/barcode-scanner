@@ -4,27 +4,24 @@
  * of low-resolution or clipboard-pasted images.
  */
 
+import type { BarcodeDetector } from 'barcode-detector/pure';
+import { SUPPORTED_BARCODE_FORMATS } from './barcode-formats';
 import { getFormatName } from './format-map';
 import type { ScanResult } from './scanner-engine';
 
-const SUPPORTED_FORMATS = [
-  'code_128',
-  'code_39',
-  'ean_13',
-  'ean_8',
-  'upc_a',
-  'upc_e',
-  'itf',
-  'codabar',
-  'qr_code',
-] as const;
+const MIN_SCAN_SIZE = 800;
+const MAX_SCAN_SIZE = 1800;
 
-/** Minimum dimension to upscale small images for better scanning. */
-const MIN_SCAN_WIDTH = 800;
+let detectorPromise: Promise<BarcodeDetector> | null = null;
 
-/**
- * Load a Blob into an HTMLImageElement.
- */
+function getDetector(): Promise<BarcodeDetector> {
+  detectorPromise ??= import('barcode-detector/pure').then(
+    ({ BarcodeDetector: Detector }) =>
+      new Detector({ formats: [...SUPPORTED_BARCODE_FORMATS] }),
+  );
+  return detectorPromise;
+}
+
 function loadImage(blob: Blob): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -40,46 +37,60 @@ function loadImage(blob: Blob): Promise<HTMLImageElement> {
   });
 }
 
-/**
- * Render the image onto a canvas with a white background and optional
- * upscaling. This dramatically improves detection for small or
- * transparent-background images from clipboard paste.
- */
-function renderToCanvas(img: HTMLImageElement): HTMLCanvasElement {
-  const scale = img.width < MIN_SCAN_WIDTH
-    ? MIN_SCAN_WIDTH / img.width
-    : 1;
+async function loadImageSource(
+  blob: Blob,
+): Promise<{ source: HTMLImageElement | ImageBitmap; cleanup: () => void }> {
+  if ('createImageBitmap' in window) {
+    const bitmap = await createImageBitmap(blob);
+    return { source: bitmap, cleanup: () => bitmap.close() };
+  }
 
-  const w = Math.round(img.width * scale);
-  const h = Math.round(img.height * scale);
+  return { source: await loadImage(blob), cleanup: () => undefined };
+}
+
+function renderToCanvas(
+  source: HTMLImageElement | ImageBitmap,
+): HTMLCanvasElement {
+  const largestSide = Math.max(source.width, source.height);
+  const scale =
+    largestSide < MIN_SCAN_SIZE
+      ? MIN_SCAN_SIZE / largestSide
+      : Math.min(1, MAX_SCAN_SIZE / largestSide);
+
+  const width = Math.round(source.width * scale);
+  const height = Math.round(source.height * scale);
 
   const canvas = document.createElement('canvas');
-  canvas.width = w;
-  canvas.height = h;
+  canvas.width = width;
+  canvas.height = height;
 
-  const ctx = canvas.getContext('2d')!;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('無法建立圖片解析畫布');
 
-  // White background — fixes transparent PNGs and dark-mode screenshots
   ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, w, h);
-
-  ctx.drawImage(img, 0, 0, w, h);
+  ctx.fillRect(0, 0, width, height);
+  ctx.drawImage(source, 0, 0, width, height);
   return canvas;
 }
 
 /**
  * Attempt to decode all barcodes found in the given image blob.
- * Pipeline: Blob → Image → Canvas (white bg + upscale) → BarcodeDetector
+ * Pipeline: Blob -> ImageBitmap/Image -> Canvas -> BarcodeDetector
  */
 export async function scanImageBlob(blob: Blob): Promise<ScanResult[]> {
-  const { BarcodeDetector } = await import('barcode-detector/pure');
-  const detector = new BarcodeDetector({ formats: [...SUPPORTED_FORMATS] });
-  const img = await loadImage(blob);
-  const canvas = renderToCanvas(img);
+  const [detector, image] = await Promise.all([
+    getDetector(),
+    loadImageSource(blob),
+  ]);
 
-  const barcodes = await detector.detect(canvas);
-  return barcodes.map((bc) => ({
-    text: bc.rawValue,
-    format: getFormatName(bc.format),
-  }));
+  try {
+    const canvas = renderToCanvas(image.source);
+    const barcodes = await detector.detect(canvas);
+    return barcodes.map((barcode) => ({
+      text: barcode.rawValue,
+      format: getFormatName(barcode.format),
+    }));
+  } finally {
+    image.cleanup();
+  }
 }

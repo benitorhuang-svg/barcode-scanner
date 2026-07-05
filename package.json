@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "fonts:download": "node scripts/download-google-fonts.mjs",
+    "type-check": "tsc --noEmit",
+    "build": "npm run type-check && vite build",
     "preview": "vite preview",
-    "lint": "eslint src --ext .ts",
+    "lint": "eslint src --ext .ts --max-warnings=0",
     "lint:fix": "eslint src --ext .ts --fix --max-warnings=0",
     "prepare": "husky"
   },

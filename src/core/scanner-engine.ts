@@ -10,6 +10,7 @@
  */
 
 import type { BarcodeDetector } from 'barcode-detector/pure';
+import { SUPPORTED_BARCODE_FORMATS } from './barcode-formats';
 import { getFormatName } from './format-map';
 
 /* ---------- Types ---------- */
@@ -21,31 +22,32 @@ export interface ScanResult {
 
 export type OnScanCallback = (result: ScanResult) => void;
 
-/* ---------- BarcodeDetector format list ---------- */
-
-const SUPPORTED_FORMATS = [
-  'code_128',
-  'code_39',
-  'ean_13',
-  'ean_8',
-  'upc_a',
-  'upc_e',
-  'itf',
-  'codabar',
-  'qr_code',
-] as const;
-
 const SCAN_INTERVAL_MS = 280;
+
+interface NativeBarcodeDetectorConstructor {
+  new (options?: { formats?: readonly string[] }): BarcodeDetector;
+}
+
+interface WindowWithBarcodeDetector extends Window {
+  BarcodeDetector?: NativeBarcodeDetectorConstructor;
+}
+
+interface WorkerScanMessage {
+  success: boolean;
+  rawValue?: string;
+  format?: unknown;
+}
 
 /* ---------- Engine ---------- */
 
 export class ScannerEngine {
   private video: HTMLVideoElement;
   private onScan: OnScanCallback;
-  private animFrameId: number | null = null;
+  private scanTimerId: number | null = null;
   private scanning = false;
-  
+
   private nativeDetector: BarcodeDetector | null = null;
+  private isNativeBusy = false;
   private worker: Worker | null = null;
   private isWorkerBusy = false;
 
@@ -58,19 +60,22 @@ export class ScannerEngine {
     if (this.scanning) return;
     this.scanning = true;
     await this.initDetector();
-    this.loop();
+    if (this.scanning) this.loop();
   }
 
   stop(): void {
     this.scanning = false;
-    if (this.animFrameId !== null) {
-      cancelAnimationFrame(this.animFrameId);
-      this.animFrameId = null;
+    if (this.scanTimerId !== null) {
+      window.clearTimeout(this.scanTimerId);
+      this.scanTimerId = null;
     }
     if (this.worker) {
       this.worker.terminate();
       this.worker = null;
     }
+    this.nativeDetector = null;
+    this.isNativeBusy = false;
+    this.isWorkerBusy = false;
   }
 
   isActive(): boolean {
@@ -80,88 +85,120 @@ export class ScannerEngine {
   /* ---- Private ---- */
 
   private async initDetector(): Promise<void> {
-    // 1. Try Native BarcodeDetector First (Hardware Accelerated)
     if ('BarcodeDetector' in window) {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const NativeDetector = (window as any).BarcodeDetector;
-        this.nativeDetector = new NativeDetector({
-          formats: [...SUPPORTED_FORMATS],
-        });
-        return;
-      } catch (e) {
-        console.warn('Native BarcodeDetector failed to initialize, falling back to Web Worker.', e);
+        const NativeDetector = (window as WindowWithBarcodeDetector)
+          .BarcodeDetector;
+        if (NativeDetector) {
+          this.nativeDetector = new NativeDetector({
+            formats: [...SUPPORTED_BARCODE_FORMATS],
+          });
+          return;
+        }
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.warn(
+            'Native BarcodeDetector failed to initialize, falling back to Web Worker.',
+            error,
+          );
+        }
         this.nativeDetector = null;
       }
     }
 
-    // 2. Fallback to Web Worker for Polyfill (Prevents Main Thread Blocking)
     if (!this.worker) {
       this.worker = new Worker(new URL('./scanner.worker.ts', import.meta.url), {
         type: 'module',
       });
 
-      this.worker.onmessage = (e: MessageEvent) => {
+      this.worker.onmessage = (event: MessageEvent<WorkerScanMessage>) => {
         this.isWorkerBusy = false;
-        const result = e.data;
-        if (result.success && result.rawValue) {
+        const result = event.data;
+        if (this.scanning && result.success && result.rawValue) {
           this.onScan({
             text: result.rawValue,
             format: getFormatName(result.format),
           });
         }
       };
+
+      this.worker.onerror = () => {
+        this.isWorkerBusy = false;
+      };
     }
   }
 
   private loop(): void {
-    let lastTick = 0;
+    this.scheduleNextDecode(0);
+  }
 
-    const tick = (): void => {
-      if (!this.scanning) return;
+  private scheduleNextDecode(delay: number): void {
+    this.scanTimerId = window.setTimeout(() => {
+      this.scanTimerId = null;
+      void this.runDecodeLoop();
+    }, delay);
+  }
 
-      const now = Date.now();
-      if (now - lastTick >= SCAN_INTERVAL_MS) {
-        lastTick = now;
-        this.decodeFrame();
-      }
+  private async runDecodeLoop(): Promise<void> {
+    if (!this.scanning) return;
 
-      this.animFrameId = requestAnimationFrame(tick);
-    };
+    await this.decodeFrame();
 
-    tick();
+    if (this.scanning) {
+      this.scheduleNextDecode(SCAN_INTERVAL_MS);
+    }
   }
 
   private async decodeFrame(): Promise<void> {
-    // Native approach
+    if (!this.isVideoReady()) return;
+
     if (this.nativeDetector) {
+      if (this.isNativeBusy) return;
+      this.isNativeBusy = true;
+
       try {
         const barcodes = await this.nativeDetector.detect(this.video);
-        if (barcodes.length > 0) {
-          const bc = barcodes[0];
+        if (this.scanning && barcodes.length > 0) {
+          const barcode = barcodes[0];
           this.onScan({
-            text: bc.rawValue,
-            format: getFormatName(bc.format),
+            text: barcode.rawValue,
+            format: getFormatName(barcode.format),
           });
         }
       } catch {
-        /* No barcode found or error */
+        /* No barcode found or the frame could not be decoded. */
+      } finally {
+        this.isNativeBusy = false;
       }
       return;
     }
 
-    // Web Worker approach
-    if (this.worker && !this.isWorkerBusy) {
-      if (this.video.readyState === this.video.HAVE_ENOUGH_DATA) {
-        try {
-          // Offload image parsing to worker using ImageBitmap
-          const bitmap = await createImageBitmap(this.video);
-          this.isWorkerBusy = true;
-          this.worker.postMessage(bitmap, [bitmap]); // Transfer ownership
-        } catch {
-          // Video might not be fully ready to capture
-        }
+    if (!this.worker || this.isWorkerBusy) return;
+
+    this.isWorkerBusy = true;
+    let bitmap: ImageBitmap | null = null;
+
+    try {
+      bitmap = await createImageBitmap(this.video);
+
+      if (!this.scanning || !this.worker) {
+        bitmap.close();
+        return;
       }
+
+      this.worker.postMessage(bitmap, [bitmap]);
+      bitmap = null;
+    } catch {
+      bitmap?.close();
+      this.isWorkerBusy = false;
     }
+  }
+
+  private isVideoReady(): boolean {
+    return (
+      this.video.readyState >= this.video.HAVE_CURRENT_DATA &&
+      this.video.videoWidth > 0 &&
+      this.video.videoHeight > 0
+    );
   }
 }

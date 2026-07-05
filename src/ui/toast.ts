@@ -4,9 +4,14 @@
 
 const TOAST_DURATION_MS = 2500;
 let toastTimer: ReturnType<typeof setTimeout> | null = null;
+let toastElement: HTMLDivElement | null = null;
+
+export function initToast(element: HTMLDivElement): void {
+  toastElement = element;
+}
 
 export function showToast(msg: string): void {
-  const toast = document.getElementById('toast');
+  const toast = toastElement;
   if (!toast) return;
 
   toast.textContent = msg;

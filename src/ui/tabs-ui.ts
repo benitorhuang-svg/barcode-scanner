@@ -1,9 +1,17 @@
-export function initTabsUI(): void {
-  const tabs = document.querySelectorAll<HTMLButtonElement>('.tab-btn');
-  const panes = document.querySelectorAll<HTMLElement>('.tab-pane');
+import type { DomRefs } from './dom-refs';
+
+export function initTabsUI(refs: DomRefs): void {
+  const tabs = Array.from(refs.tabs);
+  const panes = Array.from(refs.tabPanes);
+  const panesById = new Map(panes.map((pane) => [pane.id, pane]));
 
   tabs.forEach((tab) => {
     tab.addEventListener('click', () => {
+      if (tab.classList.contains('active')) return;
+
+      const targetTab = tab.dataset.tab;
+      if (!targetTab) return;
+
       // Remove active from all
       tabs.forEach((t) => t.classList.remove('active'));
       panes.forEach((p) => p.classList.remove('active'));
@@ -12,9 +20,8 @@ export function initTabsUI(): void {
       tab.classList.add('active');
 
       // Add active to target pane
-      const targetTab = tab.dataset.tab;
       const targetId = `tab-${targetTab}`;
-      const targetPane = document.getElementById(targetId);
+      const targetPane = panesById.get(targetId);
       if (targetPane) {
         targetPane.classList.add('active');
       }

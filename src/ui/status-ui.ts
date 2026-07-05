@@ -5,13 +5,17 @@
 import type { DomRefs } from './dom-refs';
 
 export function setStatusActive(refs: DomRefs): void {
-  refs.statusBadge.classList.add('active');
-  refs.statusBadge.innerHTML =
-    '<span class="status-dot"></span> 掃描中…';
+  renderStatus(refs, '掃描中…', true);
 }
 
 export function setStatusIdle(refs: DomRefs): void {
-  refs.statusBadge.classList.remove('active');
-  refs.statusBadge.innerHTML =
-    '<span class="status-dot"></span> 待機中';
+  renderStatus(refs, '待機中', false);
+}
+
+function renderStatus(refs: DomRefs, text: string, active: boolean): void {
+  const dot = document.createElement('span');
+  dot.className = 'status-dot';
+
+  refs.statusBadge.classList.toggle('active', active);
+  refs.statusBadge.replaceChildren(dot, document.createTextNode(text));
 }

@@ -10,8 +10,19 @@ function getEl<T extends HTMLElement>(id: string): T {
   return el as T;
 }
 
+function getAll<T extends HTMLElement>(selector: string): NodeListOf<T> {
+  const elements = document.querySelectorAll<T>(selector);
+  if (elements.length === 0) {
+    throw new Error(`No elements found for selector ${selector}`);
+  }
+  return elements;
+}
+
 export function getDomRefs() {
   return {
+    tabs: getAll<HTMLButtonElement>('.tab-btn'),
+    tabPanes: getAll<HTMLElement>('.tab-pane'),
+
     video: getEl<HTMLVideoElement>('videoElement'),
     videoContainer: getEl<HTMLDivElement>('videoContainer'),
     videoPlaceholder: getEl<HTMLDivElement>('videoPlaceholder'),
@@ -37,12 +48,18 @@ export function getDomRefs() {
 
     chkSound: getEl<HTMLInputElement>('chkSound'),
     chkDuplicate: getEl<HTMLInputElement>('chkDuplicate'),
-    // Generator
-    qrInput: document.getElementById('qrInput') as HTMLTextAreaElement,
-    btnGenerateQR: document.getElementById('btnGenerateQR') as HTMLButtonElement,
-    btnDownloadQR: document.getElementById('btnDownloadQR') as HTMLButtonElement,
-    qrPreviewWrap: document.getElementById('qrPreviewWrap') as HTMLElement,
-    qrCanvas: document.getElementById('qrCanvas') as HTMLCanvasElement,
+
+    pasteZone: getEl<HTMLDivElement>('pasteZone'),
+    fileInput: getEl<HTMLInputElement>('fileInput'),
+    pastePreview: getEl<HTMLImageElement>('pastePreview'),
+
+    qrInput: getEl<HTMLTextAreaElement>('qrInput'),
+    btnGenerateQR: getEl<HTMLButtonElement>('btnGenerateQR'),
+    btnDownloadQR: getEl<HTMLButtonElement>('btnDownloadQR'),
+    qrPreviewWrap: getEl<HTMLDivElement>('qrPreviewWrap'),
+    qrCanvas: getEl<HTMLCanvasElement>('qrCanvas'),
+
+    toast: getEl<HTMLDivElement>('toast'),
   };
 }
 

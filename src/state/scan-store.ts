@@ -14,6 +14,8 @@ type Listener = () => void;
 
 class ScanStore {
   private entries: ScanEntry[] = [];
+  private nextId = 1;
+  private valueCounts: Map<string, number> = new Map();
   private listeners: Set<Listener> = new Set();
 
   subscribe(listener: Listener): () => void {
@@ -27,23 +29,29 @@ class ScanStore {
 
   add(format: string, value: string): ScanEntry {
     const entry: ScanEntry = {
-      id: Date.now(),
+      id: this.nextId++,
       time: new Date().toLocaleTimeString('zh-TW', { hour12: false }),
       format,
       value,
     };
     this.entries.unshift(entry);
+    this.valueCounts.set(value, (this.valueCounts.get(value) ?? 0) + 1);
     this.notify();
     return entry;
   }
 
   remove(id: number): void {
+    const entry = this.entries.find((e) => e.id === id);
+    if (!entry) return;
+
     this.entries = this.entries.filter((e) => e.id !== id);
+    this.decrementValue(entry.value);
     this.notify();
   }
 
   clear(): void {
     this.entries = [];
+    this.valueCounts.clear();
     this.notify();
   }
 
@@ -56,7 +64,18 @@ class ScanStore {
   }
 
   hasDuplicate(value: string): boolean {
-    return this.entries.some((e) => e.value === value);
+    return this.valueCounts.has(value);
+  }
+
+  private decrementValue(value: string): void {
+    const count = this.valueCounts.get(value);
+    if (!count) return;
+
+    if (count === 1) {
+      this.valueCounts.delete(value);
+    } else {
+      this.valueCounts.set(value, count - 1);
+    }
   }
 }
 

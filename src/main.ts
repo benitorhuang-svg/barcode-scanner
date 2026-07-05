@@ -4,6 +4,7 @@
  */
 
 import './styles/tokens.css';
+import './styles/fonts.css';
 import './styles/base.css';
 import './styles/layout.css';
 import './styles/scanner.css';
@@ -20,13 +21,16 @@ import { copyAll, exportCSV, clearAll } from './ui/export';
 import { initPasteUI } from './ui/paste-ui';
 import { initGeneratorUI } from './ui/generator-ui';
 import { initTabsUI } from './ui/tabs-ui';
+import { initToast } from './ui/toast';
 import { registerSW } from 'virtual:pwa-register';
 
 function main(): void {
   const refs = getDomRefs();
 
+  initToast(refs.toast);
+
   // Initialize UI components
-  initTabsUI();
+  initTabsUI(refs);
 
   // Scanner controls
   refs.btnStart.addEventListener('click', () => startScanner(refs));
@@ -62,11 +66,15 @@ function main(): void {
   registerSW({
     immediate: true,
     onRegistered(r) {
-      console.log('PWA SW Registered:', r);
+      if (import.meta.env.DEV) {
+        console.info('PWA SW Registered:', r);
+      }
     },
     onRegisterError(error) {
-      console.error('PWA SW Registration Error:', error);
-    }
+      if (import.meta.env.DEV) {
+        console.error('PWA SW Registration Error:', error);
+      }
+    },
   });
 }
 

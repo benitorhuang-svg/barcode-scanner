@@ -9,12 +9,10 @@ import { scanStore } from '../state/scan-store';
 import type { DomRefs } from './dom-refs';
 import { showToast } from './toast';
 
+let isImageScanBusy = false;
+
 /** Initialize all paste/drop event listeners. */
 export function initPasteUI(refs: DomRefs): void {
-  const dropZone = document.getElementById('pasteZone');
-  const fileInput = document.getElementById('fileInput') as HTMLInputElement | null;
-  const previewImg = document.getElementById('pastePreview') as HTMLImageElement | null;
-
   // Global paste (Ctrl+V)
   document.addEventListener('paste', (e) => {
     const items = e.clipboardData?.items;
@@ -24,60 +22,60 @@ export function initPasteUI(refs: DomRefs): void {
       if (item.type.startsWith('image/')) {
         e.preventDefault();
         const blob = item.getAsFile();
-        if (blob) handleImageBlob(blob, refs, previewImg);
+        if (blob) handleImageBlob(blob, refs);
         return;
       }
     }
   });
 
-  if (!dropZone) return;
-
   // Drag & drop
-  dropZone.addEventListener('dragover', (e) => {
+  refs.pasteZone.addEventListener('dragover', (e) => {
     e.preventDefault();
-    dropZone.classList.add('drag-active');
+    refs.pasteZone.classList.add('drag-active');
   });
 
-  dropZone.addEventListener('dragleave', () => {
-    dropZone.classList.remove('drag-active');
+  refs.pasteZone.addEventListener('dragleave', () => {
+    refs.pasteZone.classList.remove('drag-active');
   });
 
-  dropZone.addEventListener('drop', (e) => {
+  refs.pasteZone.addEventListener('drop', (e) => {
     e.preventDefault();
-    dropZone.classList.remove('drag-active');
+    refs.pasteZone.classList.remove('drag-active');
 
     const file = e.dataTransfer?.files[0];
     if (file?.type.startsWith('image/')) {
-      handleImageBlob(file, refs, previewImg);
+      handleImageBlob(file, refs);
     } else {
       showToast('⚠️ 請拖放圖片檔案（PNG、JPG 等）');
     }
   });
 
   // Click to select file
-  dropZone.addEventListener('click', () => fileInput?.click());
+  refs.pasteZone.addEventListener('click', () => refs.fileInput.click());
 
-  fileInput?.addEventListener('change', () => {
-    const file = fileInput.files?.[0];
-    if (file) handleImageBlob(file, refs, previewImg);
-    fileInput.value = '';
+  refs.fileInput.addEventListener('change', () => {
+    const file = refs.fileInput.files?.[0];
+    if (file) handleImageBlob(file, refs);
+    refs.fileInput.value = '';
   });
 }
 
 /* ---- Internal ---- */
 
-async function handleImageBlob(
-  blob: Blob,
-  refs: DomRefs,
-  previewImg: HTMLImageElement | null,
-): Promise<void> {
-  // Show preview
-  if (previewImg) {
-    const url = URL.createObjectURL(blob);
-    previewImg.src = url;
-    previewImg.style.display = 'block';
-    previewImg.onload = () => URL.revokeObjectURL(url);
+async function handleImageBlob(blob: Blob, refs: DomRefs): Promise<void> {
+  if (isImageScanBusy) {
+    showToast('圖片解析中，請稍候');
+    return;
   }
+
+  isImageScanBusy = true;
+
+  // Show preview
+  const url = URL.createObjectURL(blob);
+  refs.pastePreview.src = url;
+  refs.pastePreview.style.display = 'block';
+  refs.pastePreview.onload = () => URL.revokeObjectURL(url);
+  refs.pastePreview.onerror = () => URL.revokeObjectURL(url);
 
   try {
     const results = await scanImageBlob(blob);
@@ -117,5 +115,7 @@ async function handleImageBlob(
   } catch (err) {
     const error = err as Error;
     showToast(`❌ ${error.message}`);
+  } finally {
+    isImageScanBusy = false;
   }
 }

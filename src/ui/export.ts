@@ -5,6 +5,10 @@
 import { scanStore } from '../state/scan-store';
 import { showToast } from './toast';
 
+function toCsvCell(value: string | number): string {
+  return `"${String(value).replace(/"/g, '""')}"`;
+}
+
 /** Copy all scanned values to clipboard, one per line. */
 export function copyAll(): void {
   const entries = scanStore.getAll();
@@ -20,12 +24,19 @@ export function copyAll(): void {
 export function exportCSV(): void {
   const entries = scanStore.getAll();
   const BOM = '\uFEFF';
-  const header = '序號,時間,格式,條碼內容\n';
+  const header = ['序號', '時間', '格式', '條碼內容']
+    .map(toCsvCell)
+    .join(',');
   const rows = entries
-    .map((e, i) => `${entries.length - i},"${e.time}","${e.format}","${e.value}"`)
+    .map((e, i) =>
+      [entries.length - i, e.time, e.format, e.value]
+        .map(toCsvCell)
+        .join(','),
+    )
     .join('\n');
+  const csv = [header, rows].filter(Boolean).join('\n');
 
-  const blob = new Blob([BOM + header + rows], {
+  const blob = new Blob([BOM + csv], {
     type: 'text/csv;charset=utf-8;',
   });
   const url = URL.createObjectURL(blob);

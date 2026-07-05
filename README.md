@@ -1,170 +1,162 @@
 # 📷 Webcam 條碼掃描器
 
-> 用電腦的攝影機（Webcam）即時掃描條碼，掃描結果可一鍵複製或匯出 CSV，零成本取代實體掃描槍！
+> 使用電腦 Webcam 即時掃描條碼，也支援圖片解析、QR Code 產生、掃描紀錄管理與 CSV 匯出。專案已改為本機字型與 PWA 離線優先配置，適合內部工具或課堂實作使用。
+
+![Webcam 條碼掃描器介面預覽](docs/assets/app-preview.svg)
 
 ---
 
-## ✨ 功能特色
+## 功能特色
 
 | 功能 | 說明 |
-|------|------|
-| 🎯 即時掃描 | 開啟 Webcam 即可自動偵測畫面中的條碼 |
-| 📋 掃描紀錄 | 每筆結果含時間戳記、條碼格式、條碼內容 |
-| 🔊 音效回饋 | 掃描成功時發出「嗶」聲（可關閉） |
-| 🚫 重複過濾 | 自動過濾已掃描過的條碼（可關閉） |
-| 📥 匯出 CSV | 一鍵匯出含 BOM 的 UTF-8 CSV，Excel 開啟不亂碼 |
-| 📋 複製全部 | 將所有條碼內容複製到剪貼簿，可直接貼入 Excel |
-| 📱 RWD 響應式 | 桌機、平板、手機皆可使用 |
+| --- | --- |
+| 即時掃描 | 開啟 Webcam 後自動偵測畫面中的條碼 |
+| 圖片解析 | 支援拖放、選檔或貼上圖片進行條碼解析 |
+| QR Code 產生 | 可輸入文字或網址並下載 QR Code 圖片 |
+| 掃描紀錄 | 每筆結果包含時間、格式與條碼內容 |
+| 重複過濾 | 可自動略過已掃描過的條碼 |
+| CSV 匯出 | 匯出含 UTF-8 BOM 的 CSV，Excel 開啟不亂碼 |
+| PWA 支援 | 使用 `/barcode-scanner/` base，可安裝並快取必要資產 |
+| 本機 Google Fonts | Inter 與 Noto Sans TC 已下載為內部預設，不依賴外部字型 CDN |
 
-### 支援的條碼格式
+## 支援格式
 
-- **Code 128** — 物流運單、產品包裝（最推薦的英數條碼格式）
-- **Code 39 / Code 39 Extended** — 內部資產管理、員工識別證
-- **EAN-13 / EAN-8** — 超商商品條碼
-- **UPC-A / UPC-E** — 北美商品條碼
-- **ITF** — 物流外箱條碼
-- **Codabar** — 圖書館、血庫常用
-- **QR Code** — 二維條碼
+- Code 128
+- Code 39
+- EAN-13 / EAN-8
+- UPC-A / UPC-E
+- ITF
+- Codabar
+- QR Code
 
 ---
 
-## 🚀 快速開始
+## 快速開始
 
 ### 前置需求
 
-- **Node.js 20+**（建議 Node 25）
-- 電腦需配備 **Webcam**（筆電內建鏡頭或外接 USB 攝影機皆可）
-- 使用 **Chrome / Edge** 瀏覽器（需支援 [BarcodeDetector API](https://developer.mozilla.org/en-US/docs/Web/API/BarcodeDetector)）
+- Node.js 20+
+- Chrome 或 Edge
+- 電腦需配備 Webcam
 
 ### 安裝與啟動
 
 ```bash
-# 1. 進入專案資料夾
-cd barcode-scanner
-
-# 2. 安裝依賴套件
 npm install
-
-# 3. 啟動開發伺服器
 npm run dev
 ```
 
-啟動後，終端機會顯示：
+預設開發網址：
 
-```
-VITE ready in 300 ms
-➜  Local: http://localhost:5173/
+```text
+http://localhost:5173/barcode-scanner/
 ```
 
-用瀏覽器開啟 **http://localhost:5173/** 即可開始使用。
+如果本機 `5173` 已被占用，可讓 Vite 自動切到下一個可用 port，再使用終端機顯示的網址。
 
 ---
 
-## 📖 使用教學
+## 使用方式
 
-### Step 1 — 開始掃描
+1. 進入 `Webcam` 分頁，點擊「開始掃描」並允許瀏覽器使用攝影機。
+2. 將條碼放到掃描框中央，保持光線充足並避免反光。
+3. 掃描成功後，結果會出現在最新掃描區與右側紀錄表。
+4. 可使用「複製全部」或「匯出 CSV」取出資料。
+5. 若條碼在圖片中，可切到「圖片掃描」分頁，拖放、選擇或貼上圖片。
+6. 若需要建立 QR Code，可切到「產生 QR Code」分頁輸入文字後下載圖片。
 
-點擊畫面左側的 **「▶ 開始掃描」** 按鈕，瀏覽器會跳出攝影機權限請求，請點擊 **「允許」**。
+## 掃描建議
 
-### Step 2 — 對準條碼
-
-將印有條碼的文件、商品或標籤**拿到鏡頭前方**，對準畫面中央的掃描框。
-
-> 💡 **小技巧**：
-> - 保持條碼在鏡頭前 **10～20 公分** 的距離
-> - 確保 **光線充足**，避免背光或反光
-> - 條碼應盡量 **水平放置**，不要歪斜太多
-
-### Step 3 — 確認結果
-
-掃描成功時：
-1. 畫面會閃綠光 + 發出「嗶」聲
-2. 下方出現 **最新掃描結果**
-3. 右側表格自動新增一筆紀錄
-
-### Step 4 — 匯出資料
-
-掃描完畢後，您有三種方式取出資料：
-
-| 按鈕 | 功能 | 適用情境 |
-|------|------|----------|
-| **複製全部** | 將所有條碼值複製到剪貼簿 | 直接貼到 Excel 的某一欄 |
-| **匯出 CSV** | 下載 CSV 檔案（含序號、時間、格式） | 需要完整紀錄、存檔備查 |
-| **清除** | 清空所有掃描紀錄 | 開始新一輪掃描前 |
+- 條碼距離鏡頭約 10 到 20 公分通常較容易辨識。
+- 條碼盡量保持水平，避免過度傾斜。
+- 霧面紙張通常比反光材質更穩定。
+- 若使用手機瀏覽器，請用 HTTPS 或可信任的本機環境，否則攝影機權限可能受限。
 
 ---
 
-## ⚙️ 設定選項
-
-畫面底部有兩個開關：
-
-- **🔊 掃描音效**：開啟或關閉掃描成功時的嗶聲。在安靜的辦公室可關閉。
-- **🚫 過濾重複**：開啟後，同一組條碼只會記錄一次。關閉後，每次掃描都會新增紀錄（適合盤點計數）。
-
----
-
-## 🔧 開發者資訊
-
-### 技術架構
-
-```
-TypeScript + Vite + ESLint
-├── src/core/         核心邏輯（掃描引擎、音效、格式映射）
-├── src/state/        狀態管理（觀察者模式）
-├── src/ui/           UI 控制器（原子化拆分）
-├── src/utils/        共用工具
-└── src/styles/       原子化 CSS（Design Tokens → 元件）
-```
-
-### 常用指令
+## 開發指令
 
 ```bash
-npm run dev       # 啟動開發伺服器（Hot Reload）
-npm run build     # 編譯產出到 dist/
-npm run preview   # 預覽 production build
-npm run lint      # ESLint 程式碼檢查
+npm run dev              # 啟動開發伺服器
+npm run build            # type-check 後產出 production build
+npm run preview          # 預覽 production build
+npm run type-check       # TypeScript 型別檢查
+npm run lint             # ESLint 檢查，警告視為失敗
+npm run lint:fix         # ESLint 自動修復
+npm run fonts:download   # 重新下載並裁切本機 Google Fonts
 ```
 
-### 瀏覽器相容性
-
-本掃描器使用瀏覽器原生的 **[BarcodeDetector API](https://developer.mozilla.org/en-US/docs/Web/API/BarcodeDetector)**：
-
-| 瀏覽器 | 支援狀態 |
-|--------|----------|
-| Chrome 83+ | ✅ 完整支援 |
-| Edge 83+ | ✅ 完整支援 |
-| Opera 69+ | ✅ 完整支援 |
-| Samsung Internet | ✅ 完整支援 |
-| Firefox | ❌ 尚未支援（需啟用實驗性旗標） |
-| Safari | ❌ 尚未支援 |
-
----
-
-## ❓ 常見問題
-
-### Q: 掃描不到條碼怎麼辦？
-
-1. **確認光線**：條碼表面不能有反光或陰影
-2. **調整距離**：太近或太遠都不行，通常 10～20 公分最佳
-3. **確認格式**：某些特殊條碼可能不在支援清單中
-4. **確認瀏覽器**：請使用 Chrome 或 Edge
-
-### Q: 可以用手機開啟嗎？
-
-可以！只要用手機的 Chrome 瀏覽器開啟網址即可，但需要手機和電腦在同一區網。啟動時加上 `--host` 參數：
+需要完整 Google Fonts 子集時可執行：
 
 ```bash
-npx vite --host
+npm run fonts:download -- --full
 ```
-
-然後用手機開啟終端機顯示的 Network 網址。
-
-### Q: CSV 用 Excel 打開是亂碼？
-
-不會。本程式匯出的 CSV 已加入 **UTF-8 BOM** 標記，Excel 可正確辨識繁體中文。
 
 ---
 
-## 📄 授權
+## 專案結構
 
-本專案為教育用途，供「職場助理級人員資訊生產力提升實務班」課程使用。
+```text
+barcode-scanner/
+├── docs/assets/              文件與 README 視覺素材
+├── public/                   PWA icon、分享圖與公開靜態資產
+├── scripts/                  專案維護腳本
+├── src/assets/fonts/         本機 Google Fonts woff2
+├── src/core/                 掃描引擎、圖片解析、條碼格式映射
+├── src/state/                掃描紀錄 store
+├── src/styles/               design tokens、layout、元件樣式
+└── src/ui/                   DOM refs、掃描 UI、結果表、匯出、toast
+```
+
+## 優化重點
+
+- 掃描格式集中在 `src/core/barcode-formats.ts`，避免多處維護。
+- 即時掃描 loop 使用固定間隔 timer，減少每幀輪詢成本。
+- 圖片解析與即時掃描共用格式映射邏輯。
+- 結果表使用 DOM node 建立，避免字串 HTML 注入風險。
+- 掃描紀錄用 `Map` 維護重複值計數，重複過濾不需要每次掃描整個陣列。
+- Google Fonts 已改成本機資產，並依目前 UI 文字裁切 unicode range。
+- `fonts.css` 會合併同檔案的 variable font weight range，降低 CSS 體積。
+- PWA manifest 使用正確 `start_url`、`scope` 與 `/barcode-scanner/` base。
+
+---
+
+## 瀏覽器相容性
+
+即時 Webcam 掃描優先使用瀏覽器原生 `BarcodeDetector`。若瀏覽器不支援，專案會改用 Web Worker fallback。
+
+| 瀏覽器 | 狀態 |
+| --- | --- |
+| Chrome / Edge | 建議使用 |
+| Firefox | 可使用圖片解析與 QR Code，Webcam 條碼偵測需視支援狀況 |
+| Safari | 可使用圖片解析與 QR Code，Webcam 條碼偵測需視支援狀況 |
+
+---
+
+## 視覺素材
+
+- README 介面預覽：`docs/assets/app-preview.svg`
+- 分享預覽圖：`public/og-image.svg`
+- App icon：`public/icon.svg`
+- Favicon：`public/favicon.svg`
+
+這些素材皆為專案專用，不再使用 Vite / TypeScript 範本圖。
+
+## 驗證流程
+
+修改程式或專案設定後，建議依序執行：
+
+```bash
+npm run lint:fix
+npm run lint
+npm run type-check
+npm run build
+```
+
+若有調整 README 或其他繁體中文內容，在 Windows PowerShell 顯示異常時，請以 UTF-8 讀檔確認，不要直接把終端機 mojibake 判定為檔案損壞。
+
+---
+
+## 授權
+
+本專案為教育與內部工具示範用途。

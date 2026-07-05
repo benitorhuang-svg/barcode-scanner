@@ -22,6 +22,8 @@ export async function startScanner(refs: DomRefs): Promise<void> {
   if (engine?.isActive()) return;
 
   try {
+    refs.btnStart.disabled = true;
+
     stream = await navigator.mediaDevices.getUserMedia({
       video: {
         facingMode: 'environment',
@@ -37,7 +39,6 @@ export async function startScanner(refs: DomRefs): Promise<void> {
 
     await refs.video.play();
 
-    refs.btnStart.disabled = true;
     refs.btnStop.disabled = false;
     setStatusActive(refs);
 
@@ -46,6 +47,7 @@ export async function startScanner(refs: DomRefs): Promise<void> {
     );
     await engine.start();
   } catch (err) {
+    stopScanner(refs);
     handleCameraError(err);
   }
 }
@@ -59,6 +61,8 @@ export function stopScanner(refs: DomRefs): void {
     stream = null;
   }
 
+  refs.video.pause();
+  refs.video.srcObject = null;
   refs.video.style.display = 'none';
   refs.videoPlaceholder.style.display = 'flex';
   refs.scanOverlay.style.display = 'none';
