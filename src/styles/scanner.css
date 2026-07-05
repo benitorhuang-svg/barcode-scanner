@@ -1,12 +1,18 @@
 /* ===== Scanner Section ===== */
 .scanner-header {
-  padding: 20px 24px;
+  padding: 16px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
   gap: 12px;
   border-bottom: 1px solid var(--border-color);
+  scrollbar-width: none; /* Firefox */
+}
+
+.scanner-header::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 .scanner-header h2 {
@@ -17,6 +23,7 @@
 .scanner-controls {
   display: flex;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 /* ===== Video Container ===== */
@@ -163,52 +170,38 @@
 /* ===== Settings Bar ===== */
 .settings-bar {
   display: flex;
-  gap: 16px;
+  gap: 8px;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
 }
 
-.setting-item {
-  display: flex;
+.btn-toggle {
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
-  font-size: 0.8rem;
-  color: var(--text-secondary);
+  gap: 6px;
+  background: rgba(17, 24, 39, 0.6);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
+  font-size: 0.9rem;
+  transition: var(--transition);
   user-select: none;
 }
 
-.setting-item input[type='checkbox'] {
-  display: none;
+.btn-toggle:hover {
+  border-color: var(--text-secondary);
 }
 
-.toggle {
-  position: relative;
-  width: 36px;
-  height: 20px;
-  background: rgba(100, 116, 139, 0.3);
-  border-radius: 10px;
-  transition: var(--transition);
+.btn-toggle:has(input[type="checkbox"]:checked) {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: var(--accent);
+  color: var(--accent-bright);
 }
 
-.toggle::after {
-  content: '';
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 14px;
-  height: 14px;
-  background: var(--text-muted);
-  border-radius: 50%;
-  transition: var(--transition);
-}
-
-.setting-item input:checked ~ .toggle {
-  background: rgba(99, 102, 241, 0.4);
-}
-
-.setting-item input:checked ~ .toggle::after {
-  left: 19px;
-  background: var(--accent-bright);
-  box-shadow: 0 0 6px var(--accent);
+.btn-toggle:has(input[type="checkbox"]:not(:checked)) {
+  opacity: 0.7;
 }
 
 /* ===== Flash overlay ===== */

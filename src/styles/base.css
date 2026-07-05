@@ -16,6 +16,13 @@ html {
   scroll-behavior: smooth;
 }
 
+@media (max-width: 900px) {
+  html {
+    /* 相當於預設按下兩次大A (1.2倍) */
+    font-size: calc(38.4px * var(--font-scale));
+  }
+}
+
 body {
   font-family: var(--font-sans);
   background: var(--bg-primary);

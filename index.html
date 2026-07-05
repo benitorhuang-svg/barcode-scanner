@@ -49,23 +49,23 @@
         </div>
 
         <div class="font-size-controls" aria-label="調整字體大小">
-          <button class="font-btn" id="btnFontDec" aria-label="縮小字體" style="font-size: 20px; font-weight: 600;">A</button>
-          <button class="font-btn" id="btnFontInc" aria-label="放大字體" style="font-size: 28px; font-weight: 600;">A</button>
+          <button class="font-btn" id="btnFontDec" aria-label="縮小字體" style="font-size: 28px; font-weight: 600;">A</button>
+          <button class="font-btn" id="btnFontInc" aria-label="放大字體" style="font-size: 42px; font-weight: 600;">A</button>
         </div>
       </div>
 
       <div class="header-bottom">
         <div class="tabs-header" role="tablist" aria-label="功能切換">
           <button class="tab-btn active" data-tab="webcam" role="tab" aria-selected="true" aria-controls="tab-webcam">
-            <svg width="18" height="18" viewBox="0 -960 960 960" fill="currentColor"><path d="M240-80q-33 0-56.5-23.5T160-160v-400q0-33 23.5-56.5T240-640h140l60-80h280l60 80h140q33 0 56.5 23.5T900-560v400q0 33-23.5 56.5T820-80H240Zm0-80h580v-400H240v400Zm290-60q66 0 113-47t47-113q0-66-47-113t-113-47q-66 0-113 47t-47 113q0 66 47 113t113 47ZM240-160v-400 400Z"/></svg>
+            <svg width="24" height="24" viewBox="0 -960 960 960" fill="currentColor"><path d="M240-80q-33 0-56.5-23.5T160-160v-400q0-33 23.5-56.5T240-640h140l60-80h280l60 80h140q33 0 56.5 23.5T900-560v400q0 33-23.5 56.5T820-80H240Zm0-80h580v-400H240v400Zm290-60q66 0 113-47t47-113q0-66-47-113t-113-47q-66 0-113 47t-47 113q0 66 47 113t113 47ZM240-160v-400 400Z"/></svg>
             Webcam
           </button>
           <button class="tab-btn" data-tab="paste" role="tab" aria-selected="false" aria-controls="tab-paste">
-            <svg width="18" height="18" viewBox="0 -960 960 960" fill="currentColor"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm40-80h480L570-480 450-320l-90-120-120 160Zm-40 80v-560 560Z"/></svg>
+            <svg width="24" height="24" viewBox="0 -960 960 960" fill="currentColor"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm40-80h480L570-480 450-320l-90-120-120 160Zm-40 80v-560 560Z"/></svg>
             圖片解析
           </button>
           <button class="tab-btn" data-tab="generator" role="tab" aria-selected="false" aria-controls="tab-generator">
-            <svg width="18" height="18" viewBox="0 -960 960 960" fill="currentColor"><path d="M160-160v-240h240v240H160Zm80-80h80v-80h-80v80Zm-80-320v-240h240v240H160Zm80-80h80v-80h-80v80Zm320 400v-240h240v240H560Zm80-80h80v-80h-80v80Zm-80-320v-240h240v240H560Zm80-80h80v-80h-80v80Zm-80 240h80v-80h-80v80Zm-80-80h80v-80h-80v80Zm80-80h80v-80h-80v80Zm-80-80h80v-80h-80v80Zm160 160h80v-80h-80v80Zm-80-80h80v-80h-80v80Zm80-80h80v-80h-80v80ZM200-200h160v-160H200v160Zm0-400h160v-160H200v160Zm400 400h160v-160H600v160Zm0-400h160v-160H600v160Z"/></svg>
+            <svg width="24" height="24" viewBox="0 -960 960 960" fill="currentColor"><path d="M160-160v-240h240v240H160Zm80-80h80v-80h-80v80Zm-80-320v-240h240v240H160Zm80-80h80v-80h-80v80Zm320 400v-240h240v240H560Zm80-80h80v-80h-80v80Zm-80-320v-240h240v240H560Zm80-80h80v-80h-80v80Zm-80 240h80v-80h-80v80Zm-80-80h80v-80h-80v80Zm80-80h80v-80h-80v80Zm-80-80h80v-80h-80v80Zm160 160h80v-80h-80v80Zm-80-80h80v-80h-80v80Zm80-80h80v-80h-80v80ZM200-200h160v-160H200v160Zm0-400h160v-160H200v160Zm400 400h160v-160H600v160Zm0-400h160v-160H600v160Z"/></svg>
             產生 QR Code
           </button>
         </div>
@@ -83,24 +83,39 @@
           <section class="scanner-section">
             <div class="scanner-header">
               <div class="settings-bar">
-                <label class="setting-item">
-                  <span id="labelSound">🔊 掃描音效</span>
-                  <input type="checkbox" id="chkSound" checked role="switch" aria-labelledby="labelSound">
-                  <span class="toggle" aria-hidden="true"></span>
+                <label class="btn-toggle">
+                  <input type="checkbox" id="chkSound" checked role="switch" aria-labelledby="labelSound" style="display: none;">
+                  <span id="labelSound" style="display: inline-flex; align-items: center; gap: 4px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    </svg>
+                    掃描音效
+                  </span>
                 </label>
-                <label class="setting-item">
-                  <span id="labelDuplicate">🚫 過濾重複</span>
-                  <input type="checkbox" id="chkDuplicate" checked role="switch" aria-labelledby="labelDuplicate">
-                  <span class="toggle" aria-hidden="true"></span>
+                <label class="btn-toggle">
+                  <input type="checkbox" id="chkDuplicate" checked role="switch" aria-labelledby="labelDuplicate" style="display: none;">
+                  <span id="labelDuplicate" style="display: inline-flex; align-items: center; gap: 4px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                    過濾重複
+                  </span>
                 </label>
               </div>
               <div class="scanner-controls">
                 <button id="btnStart" class="btn btn-primary">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polygon points="10 8 16 12 10 16 10 8"></polygon>
+                  </svg>
                   開始掃描
                 </button>
                 <button id="btnStop" class="btn btn-secondary" disabled>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <rect x="9" y="9" width="6" height="6"></rect>
+                  </svg>
                   停止
                 </button>
               </div>
@@ -175,7 +190,7 @@
           <section class="generator-section">
             <details class="setting-accordion setting-accordion-outer" id="outerSettingsAccordion">
               <summary id="outerSettingsSummary">
-                <div style="display:flex; align-items:center; flex:1;">
+                <div style="display:flex; align-items:center; flex:1; gap: 12px;">
                   ⚙️ 條碼設定 <span class="summary-val" id="summaryOuter">QR Code</span>
                 </div>
                 <div class="outer-settings-toggle" id="outerSettingsToggle">
