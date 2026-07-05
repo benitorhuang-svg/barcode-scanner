@@ -21,45 +21,47 @@
   <!-- Header -->
   <header class="app-header">
     <div class="header-inner">
-      <div class="logo">
-        <div class="logo-icon">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="2" y="4" width="2" height="16" rx="0.5"/>
-            <rect x="5" y="4" width="1" height="16" rx="0.3"/>
-            <rect x="7.5" y="4" width="2.5" height="16" rx="0.5"/>
-            <rect x="11" y="4" width="1" height="16" rx="0.3"/>
-            <rect x="13" y="4" width="1.5" height="16" rx="0.3"/>
-            <rect x="15.5" y="4" width="2" height="16" rx="0.5"/>
-            <rect x="18.5" y="4" width="1" height="16" rx="0.3"/>
-            <rect x="20" y="4" width="2" height="16" rx="0.5"/>
-          </svg>
+      <div class="header-top">
+        <div class="logo">
+          <div class="logo-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="4" width="2" height="16" rx="0.5"/>
+              <rect x="5" y="4" width="1" height="16" rx="0.3"/>
+              <rect x="7.5" y="4" width="2.5" height="16" rx="0.5"/>
+              <rect x="11" y="4" width="1" height="16" rx="0.3"/>
+              <rect x="13" y="4" width="1.5" height="16" rx="0.3"/>
+              <rect x="15.5" y="4" width="2" height="16" rx="0.5"/>
+              <rect x="18.5" y="4" width="1" height="16" rx="0.3"/>
+              <rect x="20" y="4" width="2" height="16" rx="0.5"/>
+            </svg>
+          </div>
+          <div>
+            <h1>Webcam 條碼掃描器</h1>
+            <p class="subtitle">支援 Code 128 · Code 39 · EAN-13 · UPC 等格式</p>
+          </div>
         </div>
-        <div>
-          <h1>Webcam 條碼掃描器</h1>
-          <p class="subtitle">支援 Code 128 · Code 39 · EAN-13 · UPC 等格式</p>
+
+        <div class="font-size-controls" aria-label="調整字體大小">
+          <button class="font-btn" id="btnFontDec" aria-label="縮小字體" style="font-size: 13px; font-weight: 600;">A</button>
+          <button class="font-btn" id="btnFontInc" aria-label="放大字體" style="font-size: 18px; font-weight: 600;">A</button>
         </div>
       </div>
 
-      <div class="tabs-header">
-        <button class="tab-btn active" data-tab="webcam">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
-          Webcam
-        </button>
-        <button class="tab-btn" data-tab="paste">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-          圖片掃描
-        </button>
-        <button class="tab-btn" data-tab="generator">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
-          產生 QR Code
-        </button>
-      </div>
-
-      <div class="header-actions">
-        <span class="status-badge" id="statusBadge">
-          <span class="status-dot"></span>
-          待機中
-        </span>
+      <div class="header-bottom">
+        <div class="tabs-header" role="tablist" aria-label="功能切換">
+          <button class="tab-btn active" data-tab="webcam" role="tab" aria-selected="true" aria-controls="tab-webcam">
+            <svg width="18" height="18" viewBox="0 -960 960 960" fill="currentColor"><path d="M240-80q-33 0-56.5-23.5T160-160v-400q0-33 23.5-56.5T240-640h140l60-80h280l60 80h140q33 0 56.5 23.5T900-560v400q0 33-23.5 56.5T820-80H240Zm0-80h580v-400H240v400Zm290-60q66 0 113-47t47-113q0-66-47-113t-113-47q-66 0-113 47t-47 113q0 66 47 113t113 47ZM240-160v-400 400Z"/></svg>
+            Webcam
+          </button>
+          <button class="tab-btn" data-tab="paste" role="tab" aria-selected="false" aria-controls="tab-paste">
+            <svg width="18" height="18" viewBox="0 -960 960 960" fill="currentColor"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm40-80h480L570-480 450-320l-90-120-120 160Zm-40 80v-560 560Z"/></svg>
+            圖片解析
+          </button>
+          <button class="tab-btn" data-tab="generator" role="tab" aria-selected="false" aria-controls="tab-generator">
+            <svg width="18" height="18" viewBox="0 -960 960 960" fill="currentColor"><path d="M160-160v-240h240v240H160Zm80-80h80v-80h-80v80Zm-80-320v-240h240v240H160Zm80-80h80v-80h-80v80Zm320 400v-240h240v240H560Zm80-80h80v-80h-80v80Zm-80-320v-240h240v240H560Zm80-80h80v-80h-80v80Zm-80 240h80v-80h-80v80Zm-80-80h80v-80h-80v80Zm80-80h80v-80h-80v80Zm-80-80h80v-80h-80v80Zm160 160h80v-80h-80v80Zm-80-80h80v-80h-80v80Zm80-80h80v-80h-80v80ZM200-200h160v-160H200v160Zm0-400h160v-160H200v160Zm400 400h160v-160H600v160Zm0-400h160v-160H600v160Z"/></svg>
+            產生 QR Code
+          </button>
+        </div>
       </div>
     </div>
   </header>
@@ -70,10 +72,21 @@
     <div class="tools-panel glass-card">
       <div class="tabs-content">
         <!-- Tab 1: Webcam -->
-        <div class="tab-pane active" id="tab-webcam">
+        <div class="tab-pane active" id="tab-webcam" role="tabpanel" aria-labelledby="tab-webcam">
           <section class="scanner-section">
             <div class="scanner-header">
-              <h2>即時掃描區</h2>
+              <div class="settings-bar">
+                <label class="setting-item">
+                  <span id="labelSound">🔊 掃描音效</span>
+                  <input type="checkbox" id="chkSound" checked role="switch" aria-labelledby="labelSound">
+                  <span class="toggle" aria-hidden="true"></span>
+                </label>
+                <label class="setting-item">
+                  <span id="labelDuplicate">🚫 過濾重複</span>
+                  <input type="checkbox" id="chkDuplicate" checked role="switch" aria-labelledby="labelDuplicate">
+                  <span class="toggle" aria-hidden="true"></span>
+                </label>
+              </div>
               <div class="scanner-controls">
                 <button id="btnStart" class="btn btn-primary">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
@@ -117,26 +130,14 @@
               </div>
             </div>
 
-            <div class="settings-bar">
-              <label class="setting-item">
-                <span>🔊 掃描音效</span>
-                <input type="checkbox" id="chkSound" checked>
-                <span class="toggle"></span>
-              </label>
-              <label class="setting-item">
-                <span>🚫 過濾重複</span>
-                <input type="checkbox" id="chkDuplicate" checked>
-                <span class="toggle"></span>
-              </label>
-            </div>
           </section>
         </div>
 
         <!-- Tab 2: Paste -->
-        <div class="tab-pane" id="tab-paste">
+        <div class="tab-pane" id="tab-paste" role="tabpanel" aria-labelledby="tab-paste">
           <section class="paste-section">
             <div class="paste-header">
-              <h2>圖片解析</h2>
+              <h2>上傳圖片進行條碼解析</h2>
               <span class="paste-hint">Ctrl+V 或拖放圖片</span>
             </div>
             <div class="paste-zone" id="pasteZone">
@@ -155,28 +156,161 @@
         </div>
 
         <!-- Tab 3: Generator -->
-        <div class="tab-pane" id="tab-generator">
+        <div class="tab-pane" id="tab-generator" role="tabpanel" aria-labelledby="tab-generator">
           <section class="generator-section">
-            <div class="generator-header">
-              <h2>產生二維碼</h2>
-            </div>
-            <div class="generator-body">
-              <textarea id="qrInput" placeholder="輸入文字或網址來產生 QR Code..." class="form-input" rows="3"></textarea>
-              <div class="generator-actions">
-                <button id="btnGenerateQR" class="btn btn-primary">產生條碼</button>
-                <button id="btnDownloadQR" class="btn btn-outline" disabled>下載圖片</button>
+            <details class="setting-accordion setting-accordion-outer" open>
+              <summary>⚙️ 條碼設定</summary>
+              <div class="accordion-content">
+                <div class="generator-settings">
+                
+                <details class="setting-accordion" name="gen-settings" open>
+                  <summary>條碼格式 <span class="summary-val" id="summaryFormat">QR Code</span></summary>
+                  <div class="accordion-content">
+                    <div class="format-toggle" id="formatToggle">
+                      <label class="toggle-btn active"><input type="radio" name="format" value="QR" checked> QR Code</label>
+                      <label class="toggle-btn"><input type="radio" name="format" value="CODE128"> Code 128</label>
+                      <label class="toggle-btn"><input type="radio" name="format" value="CODE39"> Code 39</label>
+                      <label class="toggle-btn"><input type="radio" name="format" value="EAN13"> EAN-13</label>
+                      <label class="toggle-btn"><input type="radio" name="format" value="UPC"> UPC</label>
+                    </div>
+                  </div>
+                </details>
+
+                <details class="setting-accordion" name="gen-settings">
+                  <summary>外觀設定 <span class="summary-val" id="summaryAppearance">
+                    <span style="display:inline-flex; align-items:center; gap:4px;">
+                      <span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:#0f172a; border:1px solid rgba(255,255,255,0.3);"></span>#0f172a,
+                      <span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:#ffffff; border:1px solid rgba(255,255,255,0.3); margin-left:4px;"></span>#ffffff,
+                      <span style="margin-left:4px;">邊距: 2</span>
+                    </span>
+                  </span></summary>
+                  <div class="accordion-content">
+                    <div class="appearance-layout" style="display: flex; gap: 20px; align-items: stretch; flex-wrap: wrap;">
+                      <div class="appearance-controls" style="flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 16px;">
+                        <div class="settings-row">
+                          <div class="settings-group color-group">
+                            <label for="fgColor">前景色</label>
+                            <input type="color" id="fgColor" value="#0f172a">
+                          </div>
+                          <div class="settings-group color-group">
+                            <label for="bgColor">背景色</label>
+                            <input type="color" id="bgColor" value="#ffffff">
+                          </div>
+                        </div>
+                        <div class="settings-group">
+                          <label>邊距 (Margin)</label>
+                          <div class="stepper">
+                            <button type="button" class="btn btn-outline stepper-btn" id="btnMarginDec">-</button>
+                            <span id="marginValue" class="stepper-value">2</span>
+                            <button type="button" class="btn btn-outline stepper-btn" id="btnMarginInc">+</button>
+                          </div>
+                          <input type="hidden" id="marginInput" value="2">
+                        </div>
+                      </div>
+                      <div class="appearance-preview-box" style="flex: 1; min-width: 150px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); border-radius: var(--radius-sm); border: 1px solid var(--border-color); padding: 10px; min-height: 120px;">
+                        <canvas id="appearancePreviewCanvas" style="max-width: 100%; max-height: 120px; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"></canvas>
+                      </div>
+                    </div>
+                  </div>
+                </details>
+
+                <details class="setting-accordion" id="qrSettings" name="gen-settings">
+                  <summary>QR Code 專屬 <span class="summary-val" id="summaryQR">M (15%), 無 Logo</span></summary>
+                  <div class="accordion-content">
+                    <div class="settings-group">
+                      <label>容錯率 (Error Correction)</label>
+                      <div class="format-toggle" id="errorCorrectionToggle">
+                        <label class="toggle-btn"><input type="radio" name="errorCorrection" value="L"> L (7%)</label>
+                        <label class="toggle-btn active"><input type="radio" name="errorCorrection" value="M" checked> M (15%)</label>
+                        <label class="toggle-btn"><input type="radio" name="errorCorrection" value="Q"> Q (25%)</label>
+                        <label class="toggle-btn"><input type="radio" name="errorCorrection" value="H"> H (30%)</label>
+                      </div>
+                    </div>
+                    <div class="settings-group">
+                      <label>嵌入 Logo</label>
+                      <div class="logo-upload-zone" id="logoUploadZone" style="position: relative;">
+                        <input type="file" id="logoInput" accept="image/*" style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10;">
+                        
+                        <div class="logo-upload-prompt" id="logoUploadPrompt">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                          </svg>
+                          <span style="font-size: 0.9rem;">點擊或拖放圖片上傳</span>
+                        </div>
+
+                        <div class="logo-preview-wrap" id="logoPreviewWrap" style="display:none; position: relative; z-index: 5;">
+                          <img id="logoPreviewImg" src="" alt="Logo">
+                          <button type="button" id="btnRemoveLogo" class="btn btn-outline btn-sm" style="padding: 4px 8px; position: relative; z-index: 20;">移除</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </details>
+
+                <details class="setting-accordion" name="gen-settings">
+                  <summary>圖片樣式設定 <span class="summary-val" id="summaryDownload">PNG, 原尺寸</span></summary>
+                  <div class="accordion-content">
+                    <div class="settings-group">
+                      <label>圖片格式</label>
+                      <div class="format-toggle">
+                        <label class="toggle-btn active"><input type="radio" name="dlFormat" value="png" checked> PNG</label>
+                        <label class="toggle-btn"><input type="radio" name="dlFormat" value="jpeg"> JPEG</label>
+                        <label class="toggle-btn"><input type="radio" name="dlFormat" value="svg"> SVG</label>
+                      </div>
+                    </div>
+                    <div class="settings-group">
+                      <label>尺寸大小</label>
+                      <div class="format-toggle">
+                        <label class="toggle-btn active"><input type="radio" name="dlSize" value="1" checked> 原尺寸</label>
+                        <label class="toggle-btn"><input type="radio" name="dlSize" value="2"> 2x</label>
+                        <label class="toggle-btn"><input type="radio" name="dlSize" value="4"> 4x</label>
+                      </div>
+                    </div>
+                  </div>
+                </details>
+
               </div>
-              <div class="qr-preview" id="qrPreviewWrap" style="display:none;">
-                <canvas id="qrCanvas"></canvas>
               </div>
-            </div>
+            </details>
           </section>
         </div>
       </div>
     </div>
 
+    <!-- Right Column: Generator Result Section -->
+    <section class="results-section glass-card" id="generatorResultSection" style="display: none;">
+      <div class="results-header" style="flex-direction: column; align-items: stretch; gap: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h2>✏️ 輸入內容</h2>
+        </div>
+        <textarea id="qrInput" placeholder="輸入文字或網址來產生條碼..." class="form-input" rows="3" style="font-size: 1rem; padding: 16px;"></textarea>
+      </div>
+      <div class="results-table-wrap" style="justify-content: center; align-items: center; display: flex; flex-direction: column; background: var(--bg-primary); border-top: 1px solid var(--border-color);">
+        <div class="qr-preview" id="qrPreviewWrap" style="display:none; padding: 2rem; width: 100%; box-sizing: border-box;">
+          <canvas id="qrCanvas"></canvas>
+        </div>
+        
+        <div class="download-section" id="downloadSection" style="display:none; padding: 20px; border-top: 1px solid var(--border-color); width: 100%; box-sizing: border-box;">
+          <button class="btn btn-primary" id="btnDownloadQR" style="width: 100%; justify-content: center; font-size: 1rem; padding: 12px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            下載圖片
+          </button>
+        </div>
+
+        <div class="empty-state" id="qrEmptyState" style="padding: 4rem 2rem;">
+          <svg width="48" height="48" viewBox="0 -960 960 960" fill="currentColor" opacity="0.6">
+            <path d="M160-160v-240h240v240H160Zm80-80h80v-80h-80v80Zm-80-320v-240h240v240H160Zm80-80h80v-80h-80v80Zm320 400v-240h240v240H560Zm80-80h80v-80h-80v80Zm-80-320v-240h240v240H560Zm80-80h80v-80h-80v80Zm-80 240h80v-80h-80v80Zm-80-80h80v-80h-80v80Zm80-80h80v-80h-80v80Zm-80-80h80v-80h-80v80Zm160 160h80v-80h-80v80Zm-80-80h80v-80h-80v80Zm80-80h80v-80h-80v80ZM200-200h160v-160H200v160Zm0-400h160v-160H200v160Zm400 400h160v-160H600v160Zm0-400h160v-160H600v160Z"/>
+          </svg>
+          <p>尚無產生二維碼</p>
+          <p class="hint">請在上方輸入內容以產生條碼</p>
+        </div>
+      </div>
+    </section>
+
     <!-- Right Column: Results Section -->
-    <section class="results-section glass-card">
+    <section class="results-section glass-card" id="scanResultsSection">
       <div class="results-header">
         <h2>📋 掃描紀錄</h2>
         <div class="results-actions">
@@ -221,7 +355,7 @@
   </main>
 
   <!-- Toast -->
-  <div class="toast" id="toast"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script type="module" src="/src/main.ts"></script>
 </body>

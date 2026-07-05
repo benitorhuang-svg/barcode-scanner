@@ -44,6 +44,8 @@ export class ScannerEngine {
   private video: HTMLVideoElement;
   private onScan: OnScanCallback;
   private scanTimerId: number | null = null;
+  private animationFrameId: number | null = null;
+  private lastDecodeTime = 0;
   private scanning = false;
 
   private nativeDetector: BarcodeDetector | null = null;
@@ -68,6 +70,10 @@ export class ScannerEngine {
     if (this.scanTimerId !== null) {
       window.clearTimeout(this.scanTimerId);
       this.scanTimerId = null;
+    }
+    if (this.animationFrameId !== null) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
     }
     if (this.worker) {
       this.worker.terminate();
@@ -129,25 +135,23 @@ export class ScannerEngine {
   }
 
   private loop(): void {
-    this.scheduleNextDecode(0);
+    this.lastDecodeTime = performance.now();
+    this.animationFrameId = requestAnimationFrame(this.runDecodeLoop);
   }
 
-  private scheduleNextDecode(delay: number): void {
-    this.scanTimerId = window.setTimeout(() => {
-      this.scanTimerId = null;
-      void this.runDecodeLoop();
-    }, delay);
-  }
-
-  private async runDecodeLoop(): Promise<void> {
+  private runDecodeLoop = async (now: DOMHighResTimeStamp): Promise<void> => {
     if (!this.scanning) return;
 
-    await this.decodeFrame();
+    if (now - this.lastDecodeTime >= SCAN_INTERVAL_MS) {
+      await this.decodeFrame();
+      // Reset the time after decoding
+      this.lastDecodeTime = performance.now();
+    }
 
     if (this.scanning) {
-      this.scheduleNextDecode(SCAN_INTERVAL_MS);
+      this.animationFrameId = requestAnimationFrame(this.runDecodeLoop);
     }
-  }
+  };
 
   private async decodeFrame(): Promise<void> {
     if (!this.isVideoReady()) return;

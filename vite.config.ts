@@ -9,7 +9,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       devOptions: {
-        enabled: true,
+        enabled: false,
         suppressWarnings: true,
       },
       workbox: {
@@ -38,5 +38,14 @@ export default defineConfig({
   ],
   build: {
     target: 'esnext',
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('qrcode')) return 'qrcode';
+          if (id.includes('jsbarcode')) return 'jsbarcode';
+          if (id.includes('barcode-detector')) return 'detector';
+        }
+      }
+    }
   },
 });

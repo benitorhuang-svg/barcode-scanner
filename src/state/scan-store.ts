@@ -12,6 +12,9 @@ export interface ScanEntry {
 
 type Listener = () => void;
 
+/** Maximum number of scan entries to retain in memory. */
+const MAX_ENTRIES = 500;
+
 class ScanStore {
   private entries: ScanEntry[] = [];
   private nextId = 1;
@@ -36,15 +39,23 @@ class ScanStore {
     };
     this.entries.unshift(entry);
     this.valueCounts.set(value, (this.valueCounts.get(value) ?? 0) + 1);
+
+    // Evict oldest entries when exceeding capacity
+    while (this.entries.length > MAX_ENTRIES) {
+      const evicted = this.entries.pop();
+      if (evicted) this.decrementValue(evicted.value);
+    }
+
     this.notify();
     return entry;
   }
 
   remove(id: number): void {
-    const entry = this.entries.find((e) => e.id === id);
-    if (!entry) return;
+    const index = this.entries.findIndex((e) => e.id === id);
+    if (index === -1) return;
 
-    this.entries = this.entries.filter((e) => e.id !== id);
+    const entry = this.entries[index];
+    this.entries.splice(index, 1);
     this.decrementValue(entry.value);
     this.notify();
   }
@@ -81,3 +92,4 @@ class ScanStore {
 
 /** Singleton store instance */
 export const scanStore = new ScanStore();
+

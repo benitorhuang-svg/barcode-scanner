@@ -1,26 +1,48 @@
 /* ===== Design Tokens ===== */
 :root {
-  --bg-primary: #0b0f1a;
-  --bg-secondary: #111827;
-  --bg-card: rgba(17, 24, 39, 0.7);
-  --bg-card-hover: rgba(30, 41, 59, 0.8);
-  --border-color: rgba(99, 102, 241, 0.15);
-  --border-glow: rgba(99, 102, 241, 0.4);
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --accent: #818cf8;
-  --accent-bright: #a5b4fc;
-  --accent-bg: rgba(99, 102, 241, 0.12);
-  --success: #34d399;
-  --success-bg: rgba(52, 211, 153, 0.12);
-  --danger: #f87171;
-  --danger-bg: rgba(248, 113, 113, 0.1);
-  --radius: 16px;
-  --radius-sm: 10px;
-  --radius-xs: 6px;
-  --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.4);
-  --font-sans: 'Inter', 'Noto Sans TC', 'Microsoft JhengHei', 'PingFang TC',
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Dynamic Backgrounds */
+  --bg-primary: #09090b;
+  --bg-secondary: #18181b;
+  
+  /* Glassmorphism Cards */
+  --bg-card: rgba(24, 24, 27, 0.6);
+  --bg-card-hover: rgba(39, 39, 42, 0.7);
+  
+  /* Borders */
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-glow: rgba(139, 92, 246, 0.5); /* Violet glow */
+  
+  /* Text */
+  --text-primary: #fafafa;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  
+  /* Accents (Violet/Fuchsia mix) */
+  --accent: #8b5cf6;
+  --accent-bright: #c084fc;
+  --accent-glow: rgba(139, 92, 246, 0.3);
+  --accent-bg: rgba(139, 92, 246, 0.15);
+  
+  /* Status */
+  --success: #10b981;
+  --success-bg: rgba(16, 185, 129, 0.15);
+  --danger: #ef4444;
+  --danger-bg: rgba(239, 68, 68, 0.15);
+  
+  /* Radii */
+  --radius: 20px;
+  --radius-sm: 12px;
+  --radius-xs: 8px;
+  
+  /* Shadows */
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 20px var(--accent-glow);
+  
+  /* Typography */
+  --font-sans: 'Inter', 'Noto Sans TC', 'Microsoft JhengHei', -apple-system, BlinkMacSystemFont, sans-serif;
+  
+  /* Transitions */
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); /* Spring-like */
 }

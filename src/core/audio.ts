@@ -14,6 +14,11 @@ export function playBeep(): void {
           .webkitAudioContext)();
     }
 
+    // Resume suspended AudioContext (browser autoplay policy)
+    if (audioCtx.state === 'suspended') {
+      void audioCtx.resume();
+    }
+
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
 
@@ -36,3 +41,4 @@ export function playBeep(): void {
     /* Silently ignore audio errors on unsupported browsers */
   }
 }
+

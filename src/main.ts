@@ -32,6 +32,15 @@ function main(): void {
   // Initialize UI components
   initTabsUI(refs);
 
+  // Global Font Size Controls
+  let currentFontSize = 100; // Percentage
+  const updateFontSize = (delta: number) => {
+    currentFontSize = Math.max(80, Math.min(150, currentFontSize + delta));
+    document.documentElement.style.fontSize = `${currentFontSize}%`;
+  };
+  refs.btnFontDec.addEventListener('click', () => updateFontSize(-10));
+  refs.btnFontInc.addEventListener('click', () => updateFontSize(10));
+
   // Scanner controls
   refs.btnStart.addEventListener('click', () => startScanner(refs));
   refs.btnStop.addEventListener('click', () => stopScanner(refs));

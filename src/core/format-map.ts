@@ -25,26 +25,27 @@ const ZXING_NUMERIC_MAP: Record<string, string> = {
 };
 
 interface FormatPattern {
-  keyword: string;
+  normalizedKeyword: string;
   label: string;
 }
 
+/** Pre-normalized at module load to avoid repeated regex work per scan frame. */
 const STRING_PATTERNS: FormatPattern[] = [
-  { keyword: '128', label: 'Code 128' },
-  { keyword: '39', label: 'Code 39' },
-  { keyword: '93', label: 'Code 93' },
-  { keyword: 'ean13', label: 'EAN-13' },
-  { keyword: 'ean_13', label: 'EAN-13' },
-  { keyword: 'ean-13', label: 'EAN-13' },
-  { keyword: 'ean8', label: 'EAN-8' },
-  { keyword: 'ean_8', label: 'EAN-8' },
-  { keyword: 'qr', label: 'QR Code' },
-  { keyword: 'upc_a', label: 'UPC-A' },
-  { keyword: 'upca', label: 'UPC-A' },
-  { keyword: 'upc_e', label: 'UPC-E' },
-  { keyword: 'upce', label: 'UPC-E' },
-  { keyword: 'itf', label: 'ITF' },
-  { keyword: 'codabar', label: 'Codabar' },
+  { normalizedKeyword: '128', label: 'Code 128' },
+  { normalizedKeyword: '39', label: 'Code 39' },
+  { normalizedKeyword: '93', label: 'Code 93' },
+  { normalizedKeyword: 'ean13', label: 'EAN-13' },
+  { normalizedKeyword: 'ean13', label: 'EAN-13' },
+  { normalizedKeyword: 'ean13', label: 'EAN-13' },
+  { normalizedKeyword: 'ean8', label: 'EAN-8' },
+  { normalizedKeyword: 'ean8', label: 'EAN-8' },
+  { normalizedKeyword: 'qr', label: 'QR Code' },
+  { normalizedKeyword: 'upca', label: 'UPC-A' },
+  { normalizedKeyword: 'upca', label: 'UPC-A' },
+  { normalizedKeyword: 'upce', label: 'UPC-E' },
+  { normalizedKeyword: 'upce', label: 'UPC-E' },
+  { normalizedKeyword: 'itf', label: 'ITF' },
+  { normalizedKeyword: 'codabar', label: 'Codabar' },
 ];
 
 export function getFormatName(format: unknown): string {
@@ -58,7 +59,7 @@ export function getFormatName(format: unknown): string {
 
   const normalized = str.toLowerCase().replace(/[\s_-]/g, '');
   const match = STRING_PATTERNS.find((p) =>
-    normalized.includes(p.keyword.replace(/[\s_-]/g, '')),
+    normalized.includes(p.normalizedKeyword),
   );
 
   return match?.label ?? str;

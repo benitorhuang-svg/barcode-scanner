@@ -7,8 +7,8 @@ import { ScannerEngine, type ScanResult } from '../core/scanner-engine';
 import { playBeep } from '../core/audio';
 import { scanStore } from '../state/scan-store';
 import type { DomRefs } from './dom-refs';
-import { setStatusActive, setStatusIdle } from './status-ui';
 import { showToast } from './toast';
+import { updateLastScanBanner } from './ui-helpers';
 
 const DEBOUNCE_MS = 2000;
 const DUPLICATE_COOLDOWN_MS = 5000;
@@ -17,9 +17,12 @@ let stream: MediaStream | null = null;
 let engine: ScannerEngine | null = null;
 let lastScanText = '';
 let lastScanTime = 0;
+let isStarting = false;
 
 export async function startScanner(refs: DomRefs): Promise<void> {
-  if (engine?.isActive()) return;
+  if (engine?.isActive() || isStarting) return;
+
+  isStarting = true;
 
   try {
     refs.btnStart.disabled = true;
@@ -40,7 +43,6 @@ export async function startScanner(refs: DomRefs): Promise<void> {
     await refs.video.play();
 
     refs.btnStop.disabled = false;
-    setStatusActive(refs);
 
     engine = new ScannerEngine(refs.video, (result) =>
       handleScanResult(result, refs),
@@ -49,6 +51,8 @@ export async function startScanner(refs: DomRefs): Promise<void> {
   } catch (err) {
     stopScanner(refs);
     handleCameraError(err);
+  } finally {
+    isStarting = false;
   }
 }
 
@@ -68,7 +72,6 @@ export function stopScanner(refs: DomRefs): void {
   refs.scanOverlay.style.display = 'none';
   refs.btnStart.disabled = false;
   refs.btnStop.disabled = true;
-  setStatusIdle(refs);
 }
 
 /* ---- Internal ---- */
@@ -107,12 +110,7 @@ function handleScanResult(result: ScanResult, refs: DomRefs): void {
   scanStore.add(format, text);
 
   // Update last-scan banner
-  refs.lastScanValue.textContent = text;
-  refs.lastScanFormat.textContent = format;
-  refs.lastScan.style.display = 'block';
-  refs.lastScan.style.animation = 'none';
-  void refs.lastScan.offsetWidth;
-  refs.lastScan.style.animation = '';
+  updateLastScanBanner(refs, text, format);
 }
 
 function handleCameraError(err: unknown): void {
@@ -125,3 +123,4 @@ function handleCameraError(err: unknown): void {
     showToast(`❌ 無法開啟攝影機：${error.message ?? '未知錯誤'}`);
   }
 }
+

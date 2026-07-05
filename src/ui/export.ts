@@ -46,7 +46,8 @@ export function exportCSV(): void {
   a.download = `barcode_scan_${new Date().toISOString().slice(0, 10)}.csv`;
   a.click();
 
-  URL.revokeObjectURL(url);
+  // Defer revocation to ensure the download has started
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
   showToast('📥 已匯出 CSV 檔案');
 }
 

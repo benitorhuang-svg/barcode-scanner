@@ -13,11 +13,15 @@ export function initTabsUI(refs: DomRefs): void {
       if (!targetTab) return;
 
       // Remove active from all
-      tabs.forEach((t) => t.classList.remove('active'));
+      tabs.forEach((t) => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+      });
       panes.forEach((p) => p.classList.remove('active'));
 
       // Add active to clicked tab
       tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
 
       // Add active to target pane
       const targetId = `tab-${targetTab}`;
@@ -30,6 +34,16 @@ export function initTabsUI(refs: DomRefs): void {
       document.dispatchEvent(
         new CustomEvent('tabchange', { detail: { tab: targetTab } }),
       );
+
+      // Toggle right column sections
+      if (targetTab === 'generator') {
+        refs.scanResultsSection.style.display = 'none';
+        refs.generatorResultSection.style.display = 'flex';
+      } else {
+        refs.scanResultsSection.style.display = 'flex';
+        refs.generatorResultSection.style.display = 'none';
+      }
     });
   });
 }
+

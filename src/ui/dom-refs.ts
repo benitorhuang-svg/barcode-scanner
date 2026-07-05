@@ -23,6 +23,9 @@ export function getDomRefs() {
     tabs: getAll<HTMLButtonElement>('.tab-btn'),
     tabPanes: getAll<HTMLElement>('.tab-pane'),
 
+    btnFontDec: getEl<HTMLButtonElement>('btnFontDec'),
+    btnFontInc: getEl<HTMLButtonElement>('btnFontInc'),
+
     video: getEl<HTMLVideoElement>('videoElement'),
     videoContainer: getEl<HTMLDivElement>('videoContainer'),
     videoPlaceholder: getEl<HTMLDivElement>('videoPlaceholder'),
@@ -30,8 +33,6 @@ export function getDomRefs() {
 
     btnStart: getEl<HTMLButtonElement>('btnStart'),
     btnStop: getEl<HTMLButtonElement>('btnStop'),
-
-    statusBadge: getEl<HTMLSpanElement>('statusBadge'),
 
     lastScan: getEl<HTMLDivElement>('lastScan'),
     lastScanValue: getEl<HTMLSpanElement>('lastScanValue'),
@@ -54,10 +55,38 @@ export function getDomRefs() {
     pastePreview: getEl<HTMLImageElement>('pastePreview'),
 
     qrInput: getEl<HTMLTextAreaElement>('qrInput'),
-    btnGenerateQR: getEl<HTMLButtonElement>('btnGenerateQR'),
+    formatRadios: getAll<HTMLInputElement>('input[name="format"]'),
+    fgColor: getEl<HTMLInputElement>('fgColor'),
+    bgColor: getEl<HTMLInputElement>('bgColor'),
+    marginInput: getEl<HTMLInputElement>('marginInput'),
+    marginValue: getEl<HTMLSpanElement>('marginValue'),
+    btnMarginDec: getEl<HTMLButtonElement>('btnMarginDec'),
+    btnMarginInc: getEl<HTMLButtonElement>('btnMarginInc'),
+    appearancePreviewCanvas: getEl<HTMLCanvasElement>('appearancePreviewCanvas'),
+    qrSettings: getEl<HTMLElement>('qrSettings'),
+    errorCorrectionRadios: getAll<HTMLInputElement>('input[name="errorCorrection"]'),
+    logoInput: getEl<HTMLInputElement>('logoInput'),
+    btnRemoveLogo: getEl<HTMLButtonElement>('btnRemoveLogo'),
+    logoUploadZone: getEl<HTMLDivElement>('logoUploadZone'),
+    logoUploadPrompt: getEl<HTMLDivElement>('logoUploadPrompt'),
+    logoPreviewWrap: getEl<HTMLDivElement>('logoPreviewWrap'),
+    logoPreviewImg: getEl<HTMLImageElement>('logoPreviewImg'),
+    dlFormatRadios: getAll<HTMLInputElement>('input[name="dlFormat"]'),
+    dlSizeRadios: getAll<HTMLInputElement>('input[name="dlSize"]'),
+    downloadSection: getEl<HTMLDivElement>('downloadSection'),
+
+    summaryFormat: getEl<HTMLSpanElement>('summaryFormat'),
+    summaryAppearance: getEl<HTMLSpanElement>('summaryAppearance'),
+    summaryQR: getEl<HTMLSpanElement>('summaryQR'),
+    summaryDownload: getEl<HTMLSpanElement>('summaryDownload'),
+    
     btnDownloadQR: getEl<HTMLButtonElement>('btnDownloadQR'),
     qrPreviewWrap: getEl<HTMLDivElement>('qrPreviewWrap'),
     qrCanvas: getEl<HTMLCanvasElement>('qrCanvas'),
+    qrEmptyState: getEl<HTMLDivElement>('qrEmptyState'),
+
+    scanResultsSection: getEl<HTMLElement>('scanResultsSection'),
+    generatorResultSection: getEl<HTMLElement>('generatorResultSection'),
 
     toast: getEl<HTMLDivElement>('toast'),
   };

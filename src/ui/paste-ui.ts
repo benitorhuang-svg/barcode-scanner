@@ -8,6 +8,7 @@ import { playBeep } from '../core/audio';
 import { scanStore } from '../state/scan-store';
 import type { DomRefs } from './dom-refs';
 import { showToast } from './toast';
+import { updateLastScanBanner } from './ui-helpers';
 
 let isImageScanBusy = false;
 
@@ -99,12 +100,7 @@ async function handleImageBlob(blob: Blob, refs: DomRefs): Promise<void> {
 
     // Update last-scan banner with first result
     const first = results[0];
-    refs.lastScanValue.textContent = first.text;
-    refs.lastScanFormat.textContent = first.format;
-    refs.lastScan.style.display = 'block';
-    refs.lastScan.style.animation = 'none';
-    void refs.lastScan.offsetWidth;
-    refs.lastScan.style.animation = '';
+    updateLastScanBanner(refs, first.text, first.format);
 
     const dupCount = results.length - addedCount;
     const msg =
@@ -119,3 +115,4 @@ async function handleImageBlob(blob: Blob, refs: DomRefs): Promise<void> {
     isImageScanBusy = false;
   }
 }
+

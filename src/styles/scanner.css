@@ -156,10 +156,7 @@
 /* ===== Settings Bar ===== */
 .settings-bar {
   display: flex;
-  gap: 24px;
-  padding: 14px 24px;
-  border-top: 1px solid var(--border-color);
-  background: rgba(0, 0, 0, 0.15);
+  gap: 16px;
 }
 
 .setting-item {
