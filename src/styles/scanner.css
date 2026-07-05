@@ -1,0 +1,230 @@
+/* ===== Scanner Section ===== */
+.scanner-header {
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.scanner-header h2 {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.scanner-controls {
+  display: flex;
+  gap: 8px;
+}
+
+/* ===== Video Container ===== */
+.video-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: #060911;
+  overflow: hidden;
+}
+
+.video-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--text-muted);
+}
+
+.placeholder-icon {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px dashed rgba(99, 102, 241, 0.2);
+  color: var(--accent);
+  animation: float 3s ease-in-out infinite;
+}
+
+.video-placeholder p {
+  font-size: 0.9rem;
+}
+
+.video-placeholder .hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+#videoElement {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+}
+
+/* ===== Scan Overlay ===== */
+.scan-overlay {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.scan-region {
+  position: relative;
+  width: 70%;
+  height: 40%;
+  border: 2px solid rgba(129, 140, 248, 0.15);
+  border-radius: 12px;
+}
+
+.corner {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-color: var(--accent-bright);
+  border-style: solid;
+  border-width: 0;
+}
+
+.corner.tl { top: -2px; left: -2px; border-top-width: 3px; border-left-width: 3px; border-radius: 8px 0 0 0; }
+.corner.tr { top: -2px; right: -2px; border-top-width: 3px; border-right-width: 3px; border-radius: 0 8px 0 0; }
+.corner.bl { bottom: -2px; left: -2px; border-bottom-width: 3px; border-left-width: 3px; border-radius: 0 0 0 8px; }
+.corner.br { bottom: -2px; right: -2px; border-bottom-width: 3px; border-right-width: 3px; border-radius: 0 0 8px 0; }
+
+.scan-line {
+  position: absolute;
+  left: 5%;
+  width: 90%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-bright), transparent);
+  box-shadow: 0 0 12px var(--accent);
+  animation: scan-sweep 2s ease-in-out infinite;
+}
+
+/* ===== Last Scan Flash ===== */
+.last-scan {
+  padding: 0 24px;
+  animation: slideUp 0.35s ease-out;
+}
+
+.last-scan-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  margin: 16px 0;
+  background: var(--success-bg);
+  border: 1px solid rgba(52, 211, 153, 0.2);
+  border-radius: var(--radius-sm);
+  flex-wrap: wrap;
+}
+
+.last-scan-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--success);
+}
+
+.last-scan-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-family: 'Courier New', monospace;
+  color: var(--text-primary);
+  word-break: break-all;
+}
+
+.last-scan-format {
+  margin-left: auto;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: var(--accent-bg);
+  color: var(--accent-bright);
+  border: 1px solid var(--border-color);
+}
+
+/* ===== Settings Bar ===== */
+.settings-bar {
+  display: flex;
+  gap: 24px;
+  padding: 14px 24px;
+  border-top: 1px solid var(--border-color);
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.setting-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.setting-item input[type='checkbox'] {
+  display: none;
+}
+
+.toggle {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  background: rgba(100, 116, 139, 0.3);
+  border-radius: 10px;
+  transition: var(--transition);
+}
+
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  transition: var(--transition);
+}
+
+.setting-item input:checked ~ .toggle {
+  background: rgba(99, 102, 241, 0.4);
+}
+
+.setting-item input:checked ~ .toggle::after {
+  left: 19px;
+  background: var(--accent-bright);
+  box-shadow: 0 0 6px var(--accent);
+}
+
+/* ===== Flash overlay ===== */
+.video-container.flash::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(52, 211, 153, 0.15);
+  animation: flash-anim 0.3s ease-out forwards;
+  pointer-events: none;
+  z-index: 10;
+}
+
+@media (max-width: 500px) {
+  .scanner-controls {
+    width: 100%;
+  }
+
+  .scanner-controls .btn {
+    flex: 1;
+    justify-content: center;
+  }
+}

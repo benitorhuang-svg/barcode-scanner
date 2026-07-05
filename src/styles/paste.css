@@ -1,0 +1,97 @@
+/* ===== Paste / Drop Zone ===== */
+.paste-header {
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.paste-header h2 {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.paste-hint {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--accent-bg);
+  border: 1px solid var(--border-color);
+}
+
+.paste-zone {
+  padding: 20px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.paste-zone-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 36px 20px;
+  border: 2px dashed rgba(99, 102, 241, 0.2);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  transition: var(--transition);
+}
+
+.paste-zone:hover .paste-zone-inner,
+.paste-zone.drag-active .paste-zone-inner {
+  border-color: var(--accent);
+  background: rgba(99, 102, 241, 0.05);
+  color: var(--accent-bright);
+}
+
+.paste-zone.drag-active .paste-zone-inner {
+  border-color: var(--success);
+  background: rgba(52, 211, 153, 0.05);
+  color: var(--success);
+  transform: scale(1.01);
+}
+
+.paste-zone-inner p {
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.paste-zone-inner .hint {
+  font-size: 0.73rem;
+}
+
+.paste-zone-inner svg {
+  opacity: 0.6;
+  transition: var(--transition);
+}
+
+.paste-zone:hover .paste-zone-inner svg {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.paste-zone-inner kbd {
+  display: inline-block;
+  padding: 1px 6px;
+  margin: 0 2px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-family: var(--font-sans);
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  color: var(--accent-bright);
+}
+
+/* ===== Image Preview ===== */
+.paste-preview {
+  max-width: 100%;
+  max-height: 200px;
+  margin-top: 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  object-fit: contain;
+  animation: slideUp 0.3s ease-out;
+}

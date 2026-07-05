@@ -1,0 +1,65 @@
+name: Deploy PWA to GitHub Pages
+
+on:
+  # 在 push 到 main 分支時觸發
+  push:
+    branches: ["main", "master"]
+
+  # 允許手動觸發部署
+  workflow_dispatch:
+
+# 設定 GITHUB_TOKEN 的權限，以允許部署到 GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 允許只有一個並發部署，跳過正在進行的排隊任務
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  # 構建任務
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+        # 如果你的 GitHub 儲存庫名稱不是 username.github.io，例如是 https://username.github.io/barcode-scanner/
+        # 你會需要在 package.json 內的 build 指令加上 --base=/barcode-scanner/
+        # 或者在這裡傳入環境變數讓 vite.config.ts 讀取
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Vite 預設的建置輸出目錄是 'dist'
+          path: './dist'
+
+  # 部署任務
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    runs-on: ubuntu-latest
+    name: Deploy
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
