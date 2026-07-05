@@ -185,10 +185,8 @@
 /* ===== Responsive ===== */
 @media (max-width: 900px) {
   .main-content {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      'tools'
-      'results';
+    display: flex;
+    flex-direction: column;
     padding: 16px;
     gap: 20px;
     height: auto;

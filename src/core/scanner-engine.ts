@@ -44,7 +44,10 @@ export class ScannerEngine {
   private onScan: OnScanCallback;
   private animFrameId: number | null = null;
   private scanning = false;
-  private detector: BarcodeDetector | null = null;
+  
+  private nativeDetector: BarcodeDetector | null = null;
+  private worker: Worker | null = null;
+  private isWorkerBusy = false;
 
   constructor(video: HTMLVideoElement, onScan: OnScanCallback) {
     this.video = video;
@@ -64,6 +67,10 @@ export class ScannerEngine {
       cancelAnimationFrame(this.animFrameId);
       this.animFrameId = null;
     }
+    if (this.worker) {
+      this.worker.terminate();
+      this.worker = null;
+    }
   }
 
   isActive(): boolean {
@@ -73,14 +80,37 @@ export class ScannerEngine {
   /* ---- Private ---- */
 
   private async initDetector(): Promise<void> {
-    if (this.detector) return;
-    try {
-      const { BarcodeDetector } = await import('barcode-detector/pure');
-      this.detector = new BarcodeDetector({
-        formats: [...SUPPORTED_FORMATS],
+    // 1. Try Native BarcodeDetector First (Hardware Accelerated)
+    if ('BarcodeDetector' in window) {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const NativeDetector = (window as any).BarcodeDetector;
+        this.nativeDetector = new NativeDetector({
+          formats: [...SUPPORTED_FORMATS],
+        });
+        return;
+      } catch (e) {
+        console.warn('Native BarcodeDetector failed to initialize, falling back to Web Worker.', e);
+        this.nativeDetector = null;
+      }
+    }
+
+    // 2. Fallback to Web Worker for Polyfill (Prevents Main Thread Blocking)
+    if (!this.worker) {
+      this.worker = new Worker(new URL('./scanner.worker.ts', import.meta.url), {
+        type: 'module',
       });
-    } catch {
-      this.detector = null;
+
+      this.worker.onmessage = (e: MessageEvent) => {
+        this.isWorkerBusy = false;
+        const result = e.data;
+        if (result.success && result.rawValue) {
+          this.onScan({
+            text: result.rawValue,
+            format: getFormatName(result.format),
+          });
+        }
+      };
     }
   }
 
@@ -102,12 +132,11 @@ export class ScannerEngine {
     tick();
   }
 
-  private decodeFrame(): void {
-    if (!this.detector) return;
-
-    this.detector
-      .detect(this.video)
-      .then((barcodes) => {
+  private async decodeFrame(): Promise<void> {
+    // Native approach
+    if (this.nativeDetector) {
+      try {
+        const barcodes = await this.nativeDetector.detect(this.video);
         if (barcodes.length > 0) {
           const bc = barcodes[0];
           this.onScan({
@@ -115,9 +144,24 @@ export class ScannerEngine {
             format: getFormatName(bc.format),
           });
         }
-      })
-      .catch(() => {
-        /* No barcode found — expected, keep scanning */
-      });
+      } catch {
+        /* No barcode found or error */
+      }
+      return;
+    }
+
+    // Web Worker approach
+    if (this.worker && !this.isWorkerBusy) {
+      if (this.video.readyState === this.video.HAVE_ENOUGH_DATA) {
+        try {
+          // Offload image parsing to worker using ImageBitmap
+          const bitmap = await createImageBitmap(this.video);
+          this.isWorkerBusy = true;
+          this.worker.postMessage(bitmap, [bitmap]); // Transfer ownership
+        } catch {
+          // Video might not be fully ready to capture
+        }
+      }
+    }
   }
 }
