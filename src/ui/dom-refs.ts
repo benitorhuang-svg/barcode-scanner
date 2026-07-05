@@ -79,6 +79,7 @@ export function getDomRefs() {
     summaryAppearance: getEl<HTMLSpanElement>('summaryAppearance'),
     summaryQR: getEl<HTMLSpanElement>('summaryQR'),
     summaryDownload: getEl<HTMLSpanElement>('summaryDownload'),
+    summaryOuter: getEl<HTMLSpanElement>('summaryOuter'),
     
     btnDownloadQR: getEl<HTMLButtonElement>('btnDownloadQR'),
     qrPreviewWrap: getEl<HTMLDivElement>('qrPreviewWrap'),

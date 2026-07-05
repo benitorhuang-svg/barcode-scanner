@@ -144,14 +144,14 @@ export function initGeneratorUI(refs: DomRefs): void {
   // Download
   refs.btnDownloadQR.addEventListener('click', () => downloadBarcode(refs));
 
-  // Initialize appearance summaries and dummy preview
-  updateAppearanceSummary(refs);
-  updateAppearancePreview(refs);
+  // Initialize all summaries and UI state
+  triggerGenerate(refs);
 }
 
 function triggerGenerate(refs: DomRefs): void {
   // Update summaries
-  refs.summaryFormat.textContent = getCheckedRadioLabel(refs.formatRadios, 'QR Code');
+  const formatLabel = getCheckedRadioLabel(refs.formatRadios, 'QR Code');
+  refs.summaryFormat.textContent = formatLabel;
 
   // Build appearance summary using DOM API (avoids innerHTML XSS risk)
   updateAppearanceSummary(refs);
@@ -162,6 +162,9 @@ function triggerGenerate(refs: DomRefs): void {
   refs.summaryQR.textContent = `${errLabel}, ${logoStr}`;
 
   refs.summaryDownload.textContent = `${getCheckedRadioLabel(refs.dlFormatRadios, 'PNG')}, ${getCheckedRadioLabel(refs.dlSizeRadios, '原尺寸')}`;
+
+  // Update outer summary
+  refs.summaryOuter.textContent = `${formatLabel} / ${refs.fgColor.value}`;
 
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
