@@ -27,7 +27,7 @@
   padding: 12px;
   color: var(--text-primary);
   font-family: var(--font-sans);
-  font-size: 0.9rem;
+  font-size: 1rem;
   resize: vertical;
   transition: var(--transition);
 }
@@ -85,7 +85,7 @@
 }
 
 .settings-group label {
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   font-weight: 500;
   color: var(--text-secondary);
 }
@@ -98,7 +98,7 @@
   padding: 10px 12px;
   color: var(--text-primary);
   font-family: var(--font-sans);
-  font-size: 0.9rem;
+  font-size: 1rem;
   transition: var(--transition);
   outline: none;
 }
@@ -184,7 +184,7 @@
   padding: 8px 16px;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 1rem;
   transition: var(--transition);
   user-select: none;
 }
@@ -253,7 +253,7 @@
 .setting-accordion-outer > summary {
   padding: 0 0 16px 0;
   background: transparent;
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -298,7 +298,7 @@
 }
 
 .summary-val {
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   color: var(--text-secondary);
   font-weight: normal;
   margin-right: auto;

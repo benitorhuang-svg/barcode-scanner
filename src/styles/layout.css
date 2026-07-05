@@ -65,7 +65,7 @@
 }
 
 .logo h1 {
-  font-size: 1.25rem;
+  font-size: 1.35rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   background: linear-gradient(135deg, var(--text-primary), #d8b4fe);
@@ -74,7 +74,7 @@
 }
 
 .logo .subtitle {
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   color: var(--text-muted);
   font-weight: 500;
   margin-top: 2px;
@@ -151,7 +151,7 @@
   padding: 10px 18px;
   border-radius: 10px;
   font-family: var(--font-sans);
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   display: flex;

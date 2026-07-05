@@ -33,13 +33,13 @@ function main(): void {
   initTabsUI(refs);
 
   // Global Font Size Controls
-  let currentFontSize = 100; // Percentage
+  let currentFontScale = 1.0;
   const updateFontSize = (delta: number) => {
-    currentFontSize = Math.max(80, Math.min(150, currentFontSize + delta));
-    document.documentElement.style.fontSize = `${currentFontSize}%`;
+    currentFontScale = Math.max(0.8, Math.min(2.0, currentFontScale + delta));
+    document.documentElement.style.setProperty('--font-scale', currentFontScale.toString());
   };
-  refs.btnFontDec.addEventListener('click', () => updateFontSize(-10));
-  refs.btnFontInc.addEventListener('click', () => updateFontSize(10));
+  refs.btnFontDec.addEventListener('click', () => updateFontSize(-0.1));
+  refs.btnFontInc.addEventListener('click', () => updateFontSize(0.1));
 
   // Scanner controls
   refs.btnStart.addEventListener('click', () => startScanner(refs));
