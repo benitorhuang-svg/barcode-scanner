@@ -18,16 +18,18 @@ let engine: ScannerEngine | null = null;
 let lastScanText = '';
 let lastScanTime = 0;
 let isStarting = false;
+let shouldRun = false;
 
 export async function startScanner(refs: DomRefs): Promise<void> {
   if (engine?.isActive() || isStarting) return;
 
   isStarting = true;
+  shouldRun = true;
 
   try {
     refs.btnStart.disabled = true;
 
-    stream = await navigator.mediaDevices.getUserMedia({
+    const newStream = await navigator.mediaDevices.getUserMedia({
       video: {
         facingMode: 'environment',
         width: { ideal: 1280 },
@@ -35,6 +37,14 @@ export async function startScanner(refs: DomRefs): Promise<void> {
       },
     });
 
+    // Check if stopScanner was called while waiting for permission
+    if (!shouldRun) {
+      newStream.getTracks().forEach((t) => t.stop());
+      refs.btnStart.disabled = false;
+      return;
+    }
+
+    stream = newStream;
     refs.video.srcObject = stream;
     refs.video.style.display = 'block';
     refs.videoPlaceholder.style.display = 'none';
@@ -57,6 +67,7 @@ export async function startScanner(refs: DomRefs): Promise<void> {
 }
 
 export function stopScanner(refs: DomRefs): void {
+  shouldRun = false;
   engine?.stop();
   engine = null;
 

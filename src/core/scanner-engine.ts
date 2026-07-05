@@ -72,7 +72,11 @@ export class ScannerEngine {
       this.scanTimerId = null;
     }
     if (this.animationFrameId !== null) {
-      cancelAnimationFrame(this.animationFrameId);
+      if ('cancelVideoFrameCallback' in this.video) {
+        this.video.cancelVideoFrameCallback(this.animationFrameId);
+      } else {
+        cancelAnimationFrame(this.animationFrameId);
+      }
       this.animationFrameId = null;
     }
     if (this.worker) {
@@ -136,8 +140,27 @@ export class ScannerEngine {
 
   private loop(): void {
     this.lastDecodeTime = performance.now();
-    this.animationFrameId = requestAnimationFrame(this.runDecodeLoop);
+    this.scheduleNextFrame();
   }
+
+  private scheduleNextFrame(): void {
+    if (!this.scanning) return;
+    if ('requestVideoFrameCallback' in this.video) {
+      this.animationFrameId = this.video.requestVideoFrameCallback(this.runVideoFrameCallback);
+    } else {
+      this.animationFrameId = requestAnimationFrame(this.runDecodeLoop);
+    }
+  }
+
+  private runVideoFrameCallback = async (_now: DOMHighResTimeStamp, _metadata: unknown): Promise<void> => {
+    if (!this.scanning) return;
+    const currentTime = performance.now();
+    if (currentTime - this.lastDecodeTime >= SCAN_INTERVAL_MS) {
+      await this.decodeFrame();
+      this.lastDecodeTime = performance.now();
+    }
+    this.scheduleNextFrame();
+  };
 
   private runDecodeLoop = async (now: DOMHighResTimeStamp): Promise<void> => {
     if (!this.scanning) return;
@@ -148,9 +171,7 @@ export class ScannerEngine {
       this.lastDecodeTime = performance.now();
     }
 
-    if (this.scanning) {
-      this.animationFrameId = requestAnimationFrame(this.runDecodeLoop);
-    }
+    this.scheduleNextFrame();
   };
 
   private async decodeFrame(): Promise<void> {

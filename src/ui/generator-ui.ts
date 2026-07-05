@@ -7,16 +7,25 @@ let currentLogoData: HTMLImageElement | null = null;
 
 /** Cached dynamic import of QRCode module to avoid repeated resolution. */
 let qrCodePromise: Promise<typeof import('qrcode')> | null = null;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let jsBarcodePromise: Promise<any> | null = null;
+let jsBarcodePromise: Promise<unknown> | null = null;
 
 function getQRCode(): Promise<typeof import('qrcode')> {
   qrCodePromise ??= import('qrcode');
   return qrCodePromise;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getJsBarcode(): Promise<any> {
+// Define an interface for JsBarcode instead of using Function or any
+interface JsBarcodeOptions {
+  format: string;
+  lineColor: string;
+  background: string;
+  margin: number;
+  displayValue: boolean;
+  height?: number;
+}
+type JsBarcodeFn = (target: HTMLCanvasElement | SVGElement, text: string, options: JsBarcodeOptions) => void;
+
+function getJsBarcode(): Promise<unknown> {
   jsBarcodePromise ??= import('jsbarcode').then(m => m.default || m);
   return jsBarcodePromise;
 }
@@ -144,6 +153,38 @@ export function initGeneratorUI(refs: DomRefs): void {
   // Download
   refs.btnDownloadQR.addEventListener('click', () => downloadBarcode(refs));
 
+  // Outer Accordion Toggle Logic
+  const outerAccordion = document.getElementById('outerSettingsAccordion') as HTMLDetailsElement;
+  const outerSummary = document.getElementById('outerSettingsSummary') as HTMLElement;
+  const togglePills = document.querySelectorAll('.outer-settings-toggle .toggle-pill');
+
+  if (outerSummary && outerAccordion) {
+    outerSummary.addEventListener('click', (e) => {
+      e.preventDefault(); // Prevent default details toggle
+      
+      const target = e.target as HTMLElement;
+      const val = target.getAttribute('data-val');
+
+      if (val === 'default') {
+        outerAccordion.open = false;
+      } else if (val === 'detail') {
+        outerAccordion.open = true;
+      } else {
+        // Clicked somewhere else on the summary
+        outerAccordion.open = !outerAccordion.open;
+      }
+
+      // Update pills
+      togglePills.forEach(pill => {
+        if (pill.getAttribute('data-val') === (outerAccordion.open ? 'detail' : 'default')) {
+          pill.classList.add('active');
+        } else {
+          pill.classList.remove('active');
+        }
+      });
+    });
+  }
+
   // Initialize all summaries and UI state
   triggerGenerate(refs);
 }
@@ -157,19 +198,33 @@ function triggerGenerate(refs: DomRefs): void {
   updateAppearanceSummary(refs);
   updateAppearancePreview(refs);
 
+  // Create independent badges for QR settings
   const errLabel = getCheckedRadioLabel(refs.errorCorrectionRadios, 'M (15%)');
   const logoStr = currentLogoData ? '有 Logo' : '無 Logo';
-  refs.summaryQR.textContent = `${errLabel}, ${logoStr}`;
+  renderSummaryBadges(refs.summaryQR, [errLabel, logoStr]);
 
-  refs.summaryDownload.textContent = `${getCheckedRadioLabel(refs.dlFormatRadios, 'PNG')}, ${getCheckedRadioLabel(refs.dlSizeRadios, '原尺寸')}`;
+  // Create independent badges for Download settings
+  const dlFormat = getCheckedRadioLabel(refs.dlFormatRadios, 'PNG');
+  const dlSize = getCheckedRadioLabel(refs.dlSizeRadios, '原尺寸');
+  renderSummaryBadges(refs.summaryDownload, [dlFormat, dlSize]);
 
   // Update outer summary
-  refs.summaryOuter.textContent = `${formatLabel} / ${refs.fgColor.value}`;
+  refs.summaryOuter.textContent = formatLabel;
 
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
     generateBarcode(refs);
   }, 300);
+}
+
+function renderSummaryBadges(container: HTMLElement, labels: string[]): void {
+  container.innerHTML = '';
+  labels.forEach(label => {
+    const span = document.createElement('span');
+    span.className = 'summary-val';
+    span.textContent = label;
+    container.appendChild(span);
+  });
 }
 
 /** Build the appearance summary using safe DOM APIs instead of innerHTML. */
@@ -178,22 +233,30 @@ function updateAppearanceSummary(refs: DomRefs): void {
   const bgColor = refs.bgColor.value;
   const marginVal = refs.marginInput.value;
 
-  const container = document.createElement('span');
-  container.style.cssText = 'display:inline-flex; align-items:center; gap:4px;';
+  refs.summaryAppearance.innerHTML = '';
 
+  // Badge 1: fgColor
+  const fgBadge = document.createElement('span');
+  fgBadge.className = 'summary-val';
   const fgDot = document.createElement('span');
-  fgDot.style.cssText = `display:inline-block; width:12px; height:12px; border-radius:50%; background:${fgColor}; border:1px solid rgba(255,255,255,0.3);`;
+  fgDot.style.cssText = `display:inline-block; width:10px; height:10px; border-radius:50%; background:${fgColor}; border:1px solid rgba(255,255,255,0.3); margin-right:6px;`;
+  fgBadge.appendChild(fgDot);
+  fgBadge.appendChild(document.createTextNode(fgColor));
 
+  // Badge 2: bgColor
+  const bgBadge = document.createElement('span');
+  bgBadge.className = 'summary-val';
   const bgDot = document.createElement('span');
-  bgDot.style.cssText = `display:inline-block; width:12px; height:12px; border-radius:50%; background:${bgColor}; border:1px solid rgba(255,255,255,0.3); margin-left:4px;`;
+  bgDot.style.cssText = `display:inline-block; width:10px; height:10px; border-radius:50%; background:${bgColor}; border:1px solid rgba(255,255,255,0.3); margin-right:6px;`;
+  bgBadge.appendChild(bgDot);
+  bgBadge.appendChild(document.createTextNode(bgColor));
 
-  const marginSpan = document.createElement('span');
-  marginSpan.style.marginLeft = '4px';
-  marginSpan.textContent = `邊距: ${marginVal}`;
+  // Badge 3: Margin
+  const marginBadge = document.createElement('span');
+  marginBadge.className = 'summary-val';
+  marginBadge.textContent = `邊距: ${marginVal}`;
 
-  container.append(fgDot, document.createTextNode(`${fgColor}, `), bgDot, document.createTextNode(`${bgColor}, `), marginSpan);
-
-  refs.summaryAppearance.replaceChildren(container);
+  refs.summaryAppearance.append(fgBadge, bgBadge, marginBadge);
 }
 
 async function updateAppearancePreview(refs: DomRefs): Promise<void> {
@@ -210,7 +273,7 @@ async function updateAppearancePreview(refs: DomRefs): Promise<void> {
         },
       });
     } else {
-      const jsBarcode = await getJsBarcode();
+      const jsBarcode = await getJsBarcode() as JsBarcodeFn;
       const text = config.format === 'EAN13' ? '123456789012' : (config.format === 'UPC' ? '12345678901' : 'PREVIEW');
       jsBarcode(refs.appearancePreviewCanvas, text, {
         format: config.format,
@@ -266,7 +329,7 @@ async function generateBarcode(refs: DomRefs): Promise<void> {
         }
       }
     } else {
-      const jsBarcode = await getJsBarcode();
+      const jsBarcode = await getJsBarcode() as JsBarcodeFn;
       jsBarcode(refs.qrCanvas, text, {
         format: config.format,
         lineColor: config.fgColor,
@@ -309,7 +372,7 @@ async function downloadBarcode(refs: DomRefs): Promise<void> {
         color: { dark: config.fgColor, light: config.bgColor }
       });
     } else {
-      const jsBarcode = await getJsBarcode();
+      const jsBarcode = await getJsBarcode() as JsBarcodeFn;
       const svgNode = document.createElementNS("http://www.w3.org/2000/svg", "svg");
       jsBarcode(svgNode, text, {
         format: config.format,

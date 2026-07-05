@@ -51,8 +51,11 @@ export function getDomRefs() {
     chkDuplicate: getEl<HTMLInputElement>('chkDuplicate'),
 
     pasteZone: getEl<HTMLDivElement>('pasteZone'),
-    fileInput: getEl<HTMLInputElement>('fileInput'),
+    pastePrompt: getEl<HTMLDivElement>('pastePrompt'),
+    pastePreviewWrap: getEl<HTMLDivElement>('pastePreviewWrap'),
     pastePreview: getEl<HTMLImageElement>('pastePreview'),
+    btnClearPaste: getEl<HTMLButtonElement>('btnClearPaste'),
+    fileInput: getEl<HTMLInputElement>('fileInput'),
 
     qrInput: getEl<HTMLTextAreaElement>('qrInput'),
     formatRadios: getAll<HTMLInputElement>('input[name="format"]'),

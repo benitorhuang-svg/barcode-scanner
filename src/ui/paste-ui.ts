@@ -54,6 +54,15 @@ export function initPasteUI(refs: DomRefs): void {
   // Click to select file
   refs.pasteZone.addEventListener('click', () => refs.fileInput.click());
 
+  // Clear photo button
+  refs.btnClearPaste.addEventListener('click', (e) => {
+    e.stopPropagation(); // Prevent opening file dialog
+    refs.pastePreview.src = '';
+    refs.pastePreviewWrap.style.display = 'none';
+    refs.pastePrompt.style.display = 'block';
+    refs.fileInput.value = '';
+  });
+
   refs.fileInput.addEventListener('change', () => {
     const file = refs.fileInput.files?.[0];
     if (file) handleImageBlob(file, refs);
@@ -74,7 +83,8 @@ async function handleImageBlob(blob: Blob, refs: DomRefs): Promise<void> {
   // Show preview
   const url = URL.createObjectURL(blob);
   refs.pastePreview.src = url;
-  refs.pastePreview.style.display = 'block';
+  refs.pastePrompt.style.display = 'none';
+  refs.pastePreviewWrap.style.display = 'block';
   refs.pastePreview.onload = () => URL.revokeObjectURL(url);
   refs.pastePreview.onerror = () => URL.revokeObjectURL(url);
 

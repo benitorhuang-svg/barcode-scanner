@@ -1,48 +1,51 @@
 /* ===== Design Tokens ===== */
 :root {
   /* Dynamic Backgrounds */
-  --bg-primary: #09090b;
-  --bg-secondary: #18181b;
+  --bg-primary: #050508; /* Deeper space black */
+  --bg-secondary: #0f111a;
   
   /* Glassmorphism Cards */
-  --bg-card: rgba(24, 24, 27, 0.6);
-  --bg-card-hover: rgba(39, 39, 42, 0.7);
+  --bg-card: rgba(15, 17, 26, 0.45);
+  --bg-card-hover: rgba(25, 28, 43, 0.6);
+  --glass-blur: blur(24px);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.1);
   
   /* Borders */
-  --border-color: rgba(255, 255, 255, 0.08);
-  --border-glow: rgba(139, 92, 246, 0.5); /* Violet glow */
+  --border-color: rgba(255, 255, 255, 0.1);
+  --border-glow: rgba(167, 139, 250, 0.6); /* Vibrant purple */
   
   /* Text */
-  --text-primary: #fafafa;
-  --text-secondary: #a1a1aa;
-  --text-muted: #71717a;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #64748b;
   
-  /* Accents (Violet/Fuchsia mix) */
+  /* Accents (Purple to Pink gradient palette) */
   --accent: #8b5cf6;
-  --accent-bright: #c084fc;
-  --accent-glow: rgba(139, 92, 246, 0.3);
+  --accent-bright: #d946ef; /* Fuchsia */
+  --accent-glow: rgba(139, 92, 246, 0.4);
   --accent-bg: rgba(139, 92, 246, 0.15);
   
   /* Status */
   --success: #10b981;
   --success-bg: rgba(16, 185, 129, 0.15);
-  --danger: #ef4444;
-  --danger-bg: rgba(239, 68, 68, 0.15);
+  --danger: #f43f5e;
+  --danger-bg: rgba(244, 63, 94, 0.15);
   
   /* Radii */
-  --radius: 20px;
-  --radius-sm: 12px;
+  --radius: 24px;
+  --radius-sm: 14px;
   --radius-xs: 8px;
   
   /* Shadows */
-  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.6);
-  --shadow-glow: 0 0 20px var(--accent-glow);
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 32px 80px rgba(0, 0, 0, 0.8);
+  --shadow-glow: 0 0 24px var(--accent-glow);
   
   /* Typography */
   --font-sans: 'Inter', 'Noto Sans TC', 'Microsoft JhengHei', -apple-system, BlinkMacSystemFont, sans-serif;
   
   /* Transitions */
   --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); /* Spring-like */
+  --transition: 0.4s cubic-bezier(0.25, 1.2, 0.5, 1); /* Enhanced spring-like bounce */
 }
