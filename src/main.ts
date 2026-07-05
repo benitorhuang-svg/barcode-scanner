@@ -95,6 +95,19 @@ function main(): void {
       if (import.meta.env.DEV) {
         console.info('PWA SW Registered:', r);
       }
+      if (r) {
+        // 定期檢查更新 (每小時)
+        setInterval(() => {
+          r.update().catch(() => {});
+        }, 60 * 60 * 1000);
+
+        // 當使用者切換回此分頁時立即檢查更新 (特別針對手機版背景喚醒)
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') {
+            r.update().catch(() => {});
+          }
+        });
+      }
     },
     onRegisterError(error) {
       if (import.meta.env.DEV) {
