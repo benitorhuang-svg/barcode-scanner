@@ -80,32 +80,21 @@
   margin-top: 2px;
 }
 
-/* ===== Main Content ===== */
 .main-content {
   position: relative;
   z-index: 1;
-  max-width: 1200px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 32px 28px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr;
-  grid-template-areas:
-    'tools results';
+  display: flex;
+  flex-direction: column;
   gap: 24px;
-  align-items: start;
-  min-height: calc(100vh - 80px);
-  height: auto;
 }
 
-.tools-panel { grid-area: tools; display: flex; flex-direction: column; }
+.tools-panel { display: flex; flex-direction: column; }
 .results-section {
-  grid-area: results; 
   display: flex; 
   flex-direction: column; 
-  position: sticky; 
-  top: 104px; 
-  max-height: calc(100vh - 128px);
 }
 
 /* ===== Font Size Controls ===== */
