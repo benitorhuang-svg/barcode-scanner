@@ -93,13 +93,20 @@
   grid-template-areas:
     'tools results';
   gap: 24px;
-  align-items: stretch;
-  height: calc(100vh - 80px);
-  overflow: hidden;
+  align-items: start;
+  min-height: calc(100vh - 80px);
+  height: auto;
 }
 
 .tools-panel { grid-area: tools; display: flex; flex-direction: column; }
-.results-section { grid-area: results; display: flex; flex-direction: column; }
+.results-section {
+  grid-area: results; 
+  display: flex; 
+  flex-direction: column; 
+  position: sticky; 
+  top: 104px; 
+  max-height: calc(100vh - 128px);
+}
 
 /* ===== Font Size Controls ===== */
 .font-size-controls {

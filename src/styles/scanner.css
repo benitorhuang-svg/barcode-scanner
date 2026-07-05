@@ -26,6 +26,13 @@
   aspect-ratio: 4 / 3;
   background: #060911;
   overflow: hidden;
+  border-radius: 12px;
+}
+
+@media (max-width: 900px) {
+  .video-container {
+    aspect-ratio: 3 / 4;
+  }
 }
 
 .video-placeholder {

@@ -53,6 +53,23 @@ function main(): void {
     }
   });
 
+  // Resource Management: Pause camera when page is hidden (minimized or background tab)
+  let wasRunningBeforeHidden = false;
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      // If btnStart is disabled, it means the scanner is currently running
+      wasRunningBeforeHidden = refs.btnStart.disabled;
+      if (wasRunningBeforeHidden) {
+        stopScanner(refs);
+      }
+    } else {
+      // Page became visible again
+      if (wasRunningBeforeHidden && document.querySelector('.tab-btn[data-tab="webcam"]')?.classList.contains('active')) {
+        startScanner(refs);
+      }
+    }
+  });
+
   // Action buttons
   refs.btnCopy.addEventListener('click', copyAll);
   refs.btnExport.addEventListener('click', exportCSV);
