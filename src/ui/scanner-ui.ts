@@ -5,6 +5,7 @@
 
 import { ScannerEngine, type ScanResult } from '../core/scanner-engine';
 import { playBeep } from '../core/audio';
+import { isScanTextFragment } from '../core/scan-result-filter';
 import { scanStore } from '../state/scan-store';
 import type { DomRefs } from './dom-refs';
 import { showToast } from './toast';
@@ -12,11 +13,17 @@ import { updateLastScanBanner } from './ui-helpers';
 
 const DEBOUNCE_MS = 2000;
 const DUPLICATE_COOLDOWN_MS = 5000;
+const STABLE_SCAN_WINDOW_MS = 1200;
+const STABLE_SCAN_REQUIRED_HITS = 2;
 
 let stream: MediaStream | null = null;
 let engine: ScannerEngine | null = null;
 let lastScanText = '';
 let lastScanTime = 0;
+let pendingScanText = '';
+let pendingScanFormat = '';
+let pendingScanHits = 0;
+let pendingScanLastSeen = 0;
 let isStarting = false;
 let shouldRun = false;
 
@@ -68,6 +75,7 @@ export async function startScanner(refs: DomRefs): Promise<void> {
 
 export function stopScanner(refs: DomRefs): void {
   shouldRun = false;
+  resetPendingScan();
   engine?.stop();
   engine = null;
 
@@ -88,10 +96,11 @@ export function stopScanner(refs: DomRefs): void {
 /* ---- Internal ---- */
 
 function handleScanResult(result: ScanResult, refs: DomRefs): void {
-  const { text, format } = result;
-  if (!text) return;
-
   const now = Date.now();
+  const stableResult = getStableScanResult(result, now);
+  if (!stableResult) return;
+
+  const { text, format } = stableResult;
 
   // Debounce repeated scans of the same barcode
   if (text === lastScanText && now - lastScanTime < DEBOUNCE_MS) return;
@@ -124,6 +133,60 @@ function handleScanResult(result: ScanResult, refs: DomRefs): void {
   updateLastScanBanner(refs, text, format);
 }
 
+function getStableScanResult(
+  result: ScanResult,
+  now: number,
+): ScanResult | null {
+  const text = result.text.trim();
+  if (!text) return null;
+
+  const isExpired = now - pendingScanLastSeen > STABLE_SCAN_WINDOW_MS;
+
+  if (!pendingScanText || isExpired) {
+    setPendingScan(result.format, text, now);
+    return null;
+  }
+
+  if (text === pendingScanText) {
+    pendingScanHits += 1;
+    pendingScanLastSeen = now;
+
+    if (pendingScanHits < STABLE_SCAN_REQUIRED_HITS) return null;
+
+    return {
+      text: pendingScanText,
+      format: pendingScanFormat,
+    };
+  }
+
+  if (isScanTextFragment(pendingScanText, text)) {
+    setPendingScan(result.format, text, now);
+    return null;
+  }
+
+  if (isScanTextFragment(text, pendingScanText)) {
+    pendingScanLastSeen = now;
+    return null;
+  }
+
+  setPendingScan(result.format, text, now);
+  return null;
+}
+
+function setPendingScan(format: string, text: string, now: number): void {
+  pendingScanText = text;
+  pendingScanFormat = format;
+  pendingScanHits = 1;
+  pendingScanLastSeen = now;
+}
+
+function resetPendingScan(): void {
+  pendingScanText = '';
+  pendingScanFormat = '';
+  pendingScanHits = 0;
+  pendingScanLastSeen = 0;
+}
+
 function handleCameraError(err: unknown): void {
   const error = err as { name?: string; message?: string };
   if (error.name === 'NotAllowedError') {
@@ -134,4 +197,3 @@ function handleCameraError(err: unknown): void {
     showToast(`❌ 無法開啟攝影機：${error.message ?? '未知錯誤'}`);
   }
 }
-

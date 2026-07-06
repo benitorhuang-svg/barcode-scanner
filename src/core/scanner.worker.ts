@@ -2,6 +2,7 @@
 
 import { BarcodeDetector } from 'barcode-detector/pure';
 import { SUPPORTED_BARCODE_FORMATS } from './barcode-formats';
+import { compactScanResults } from './scan-result-filter';
 
 const detector = new BarcodeDetector({
   formats: [...SUPPORTED_BARCODE_FORMATS],
@@ -13,11 +14,18 @@ self.addEventListener('message', async (event: MessageEvent) => {
   try {
     const barcodes = await detector.detect(bitmap);
 
-    if (barcodes.length > 0) {
-      const barcode = barcodes[0];
+    const results = compactScanResults(
+      barcodes.map((barcode) => ({
+        text: barcode.rawValue,
+        format: barcode.format,
+      })),
+    );
+
+    if (results.length > 0) {
+      const barcode = results[0];
       self.postMessage({
         success: true,
-        rawValue: barcode.rawValue,
+        rawValue: barcode.text,
         format: barcode.format,
       });
     } else {

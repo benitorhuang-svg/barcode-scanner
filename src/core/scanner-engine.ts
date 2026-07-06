@@ -12,6 +12,7 @@
 import type { BarcodeDetector } from 'barcode-detector/pure';
 import { SUPPORTED_BARCODE_FORMATS } from './barcode-formats';
 import { getFormatName } from './format-map';
+import { compactScanResults } from './scan-result-filter';
 
 /* ---------- Types ---------- */
 
@@ -184,10 +185,18 @@ export class ScannerEngine {
       try {
         const barcodes = await this.nativeDetector.detect(this.video);
         if (this.scanning && barcodes.length > 0) {
-          const barcode = barcodes[0];
+          const barcode = compactScanResults(
+            barcodes.map((item) => ({
+              text: item.rawValue,
+              format: getFormatName(item.format),
+            })),
+          )[0];
+
+          if (!barcode) return;
+
           this.onScan({
-            text: barcode.rawValue,
-            format: getFormatName(barcode.format),
+            text: barcode.text,
+            format: barcode.format,
           });
         }
       } catch {

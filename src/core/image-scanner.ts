@@ -7,6 +7,7 @@
 import type { BarcodeDetector } from 'barcode-detector/pure';
 import { SUPPORTED_BARCODE_FORMATS } from './barcode-formats';
 import { getFormatName } from './format-map';
+import { compactScanResults } from './scan-result-filter';
 import type { ScanResult } from './scanner-engine';
 
 const MIN_SCAN_SIZE = 800;
@@ -86,10 +87,12 @@ export async function scanImageBlob(blob: Blob): Promise<ScanResult[]> {
   try {
     const canvas = renderToCanvas(image.source);
     const barcodes = await detector.detect(canvas);
-    return barcodes.map((barcode) => ({
-      text: barcode.rawValue,
-      format: getFormatName(barcode.format),
-    }));
+    return compactScanResults(
+      barcodes.map((barcode) => ({
+        text: barcode.rawValue,
+        format: getFormatName(barcode.format),
+      })),
+    );
   } finally {
     image.cleanup();
   }
