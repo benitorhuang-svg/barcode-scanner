@@ -3,26 +3,31 @@
  * the empty state display. Subscribes to the ScanStore.
  */
 
-import { scanStore, type ScanEntry } from '../state/scan-store';
+import {
+  scanStore,
+  type ScanEntry,
+  type StoreChange,
+} from '../application/scanning/scan-store';
 import type { DomRefs } from './dom-refs';
 
 /** Wire up the store subscription to re-render on state changes. */
 export function initResultsUI(refs: DomRefs): void {
-  scanStore.subscribe(() => renderResults(refs));
+  scanStore.subscribe((change) => handleStoreChange(refs, change));
+  renderResults(refs);
+}
+
+function handleStoreChange(refs: DomRefs, change: StoreChange): void {
+  if (change.type === 'add') {
+    insertNewestResult(refs, change.entry);
+    return;
+  }
+
   renderResults(refs);
 }
 
 function renderResults(refs: DomRefs): void {
   const entries = scanStore.getAll();
-  const hasData = entries.length > 0;
-
-  refs.resultsTable.style.display = hasData ? 'table' : 'none';
-  refs.emptyState.style.display = hasData ? 'none' : 'flex';
-  refs.countBadge.textContent = `${entries.length} 筆`;
-
-  refs.btnCopy.disabled = !hasData;
-  refs.btnExport.disabled = !hasData;
-  refs.btnClear.disabled = !hasData;
+  updateResultsChrome(refs, entries.length);
 
   const fragment = document.createDocumentFragment();
   entries.forEach((entry, index) => {
@@ -32,12 +37,37 @@ function renderResults(refs: DomRefs): void {
   refs.resultsBody.replaceChildren(fragment);
 }
 
+function insertNewestResult(refs: DomRefs, entry: ScanEntry): void {
+  const entries = scanStore.getAll();
+  updateResultsChrome(refs, entries.length);
+
+  refs.resultsBody.querySelector('.row-enter')?.classList.remove('row-enter');
+  refs.resultsBody.prepend(createResultRow(entry, entries.length, true));
+
+  while (refs.resultsBody.rows.length > entries.length) {
+    refs.resultsBody.rows.item(refs.resultsBody.rows.length - 1)?.remove();
+  }
+}
+
+function updateResultsChrome(refs: DomRefs, count: number): void {
+  const hasData = count > 0;
+
+  refs.resultsTable.style.display = hasData ? 'table' : 'none';
+  refs.emptyState.style.display = hasData ? 'none' : 'flex';
+  refs.countBadge.textContent = `${count} 筆`;
+
+  refs.btnCopy.disabled = !hasData;
+  refs.btnExport.disabled = !hasData;
+  refs.btnClear.disabled = !hasData;
+}
+
 function createResultRow(
   entry: ScanEntry,
   displayIndex: number,
   isNewest: boolean,
 ): HTMLTableRowElement {
   const tr = document.createElement('tr');
+  tr.dataset.entryId = String(entry.id);
   if (isNewest) tr.className = 'row-enter';
 
   tr.append(

@@ -86,3 +86,17 @@ body {
   66% { transform: translate(-20px, 20px) scale(0.9); }
   100% { transform: translate(40px, 40px) scale(1.05); }
 }
+
+@media (max-width: 900px) {
+  .blob {
+    animation: none;
+    filter: blur(48px);
+    opacity: 0.35;
+    will-change: auto;
+  }
+
+  .blob-2,
+  .blob-3 {
+    display: none;
+  }
+}

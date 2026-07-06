@@ -2,7 +2,23 @@ export interface ScanTextResult {
   text: string;
 }
 
-function normalizeScanText(value: string): string {
+export interface ScanResult extends ScanTextResult {
+  format: string;
+}
+
+export interface ScanEntry {
+  id: number;
+  time: string;
+  format: string;
+  value: string;
+}
+
+export interface ScanEntryInput {
+  format: string;
+  value: string;
+}
+
+export function normalizeScanText(value: string): string {
   return value.trim();
 }
 

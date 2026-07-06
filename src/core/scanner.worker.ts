@@ -1,8 +1,8 @@
 /// <reference lib="webworker" />
 
 import { BarcodeDetector } from 'barcode-detector/pure';
+import { compactScanResults } from '../domain/scanning/scan-result';
 import { SUPPORTED_BARCODE_FORMATS } from './barcode-formats';
-import { compactScanResults } from './scan-result-filter';
 
 const detector = new BarcodeDetector({
   formats: [...SUPPORTED_BARCODE_FORMATS],

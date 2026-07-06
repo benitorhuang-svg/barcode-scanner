@@ -10,20 +10,19 @@
  */
 
 import type { BarcodeDetector } from 'barcode-detector/pure';
+import {
+  compactScanResults,
+  type ScanResult,
+} from '../domain/scanning/scan-result';
 import { SUPPORTED_BARCODE_FORMATS } from './barcode-formats';
 import { getFormatName } from './format-map';
-import { compactScanResults } from './scan-result-filter';
 
 /* ---------- Types ---------- */
-
-export interface ScanResult {
-  text: string;
-  format: string;
-}
 
 export type OnScanCallback = (result: ScanResult) => void;
 
 const SCAN_INTERVAL_MS = 280;
+const MAX_WORKER_FRAME_SIDE = 1024;
 
 interface NativeBarcodeDetectorConstructor {
   new (options?: { formats?: readonly string[] }): BarcodeDetector;
@@ -213,7 +212,7 @@ export class ScannerEngine {
     let bitmap: ImageBitmap | null = null;
 
     try {
-      bitmap = await createImageBitmap(this.video);
+      bitmap = await this.createWorkerFrameBitmap();
 
       if (!this.scanning || !this.worker) {
         bitmap.close();
@@ -234,5 +233,28 @@ export class ScannerEngine {
       this.video.videoWidth > 0 &&
       this.video.videoHeight > 0
     );
+  }
+
+  private async createWorkerFrameBitmap(): Promise<ImageBitmap> {
+    const { videoWidth, videoHeight } = this.video;
+    const largestSide = Math.max(videoWidth, videoHeight);
+
+    if (largestSide <= MAX_WORKER_FRAME_SIDE) {
+      return createImageBitmap(this.video);
+    }
+
+    const scale = MAX_WORKER_FRAME_SIDE / largestSide;
+    const resizeWidth = Math.max(1, Math.round(videoWidth * scale));
+    const resizeHeight = Math.max(1, Math.round(videoHeight * scale));
+
+    try {
+      return await createImageBitmap(this.video, {
+        resizeWidth,
+        resizeHeight,
+        resizeQuality: 'high',
+      });
+    } catch {
+      return createImageBitmap(this.video);
+    }
   }
 }

@@ -3,14 +3,23 @@
  * barcode scanning. Listens for Ctrl+V / Cmd+V and drag-and-drop.
  */
 
-import { scanImageBlob } from '../core/image-scanner';
+import { ingestScanResults } from '../application/scanning/scan-ingestion-service';
 import { playBeep } from '../core/audio';
-import { scanStore } from '../state/scan-store';
 import type { DomRefs } from './dom-refs';
 import { showToast } from './toast';
 import { updateLastScanBanner } from './ui-helpers';
 
 let isImageScanBusy = false;
+let imageScannerPromise: Promise<typeof import('../core/image-scanner')> | null =
+  null;
+
+function getImageScanner(): Promise<typeof import('../core/image-scanner')> {
+  imageScannerPromise ??= import('../core/image-scanner').catch((error) => {
+    imageScannerPromise = null;
+    throw error;
+  });
+  return imageScannerPromise;
+}
 
 /** Initialize all paste/drop event listeners. */
 export function initPasteUI(refs: DomRefs): void {
@@ -89,6 +98,7 @@ async function handleImageBlob(blob: Blob, refs: DomRefs): Promise<void> {
   refs.pastePreview.onerror = () => URL.revokeObjectURL(url);
 
   try {
+    const { scanImageBlob } = await getImageScanner();
     const results = await scanImageBlob(blob);
 
     if (results.length === 0) {
@@ -96,27 +106,25 @@ async function handleImageBlob(blob: Blob, refs: DomRefs): Promise<void> {
       return;
     }
 
-    let addedCount = 0;
-    for (const r of results) {
-      const isDup =
-        refs.chkDuplicate.checked && scanStore.hasDuplicate(r.text);
-      if (!isDup) {
-        scanStore.add(r.format, r.text);
-        addedCount++;
-      }
-    }
+    const ingestResult = ingestScanResults(results, {
+      filterDuplicates: refs.chkDuplicate.checked,
+    });
 
     if (refs.chkSound.checked) playBeep();
 
     // Update last-scan banner with first result
-    const first = results[0];
-    updateLastScanBanner(refs, first.text, first.format);
+    if (ingestResult.firstResult) {
+      updateLastScanBanner(
+        refs,
+        ingestResult.firstResult.text,
+        ingestResult.firstResult.format,
+      );
+    }
 
-    const dupCount = results.length - addedCount;
     const msg =
-      dupCount > 0
-        ? `✅ 偵測到 ${results.length} 組條碼（${dupCount} 組重複已過濾）`
-        : `✅ 成功掃描 ${results.length} 組條碼`;
+      ingestResult.duplicateCount > 0
+        ? `✅ 偵測到 ${results.length} 組條碼（${ingestResult.duplicateCount} 組重複已過濾）`
+        : `✅ 成功掃描 ${ingestResult.addedCount} 組條碼`;
     showToast(msg);
   } catch (err) {
     const error = err as Error;
@@ -125,4 +133,3 @@ async function handleImageBlob(blob: Blob, refs: DomRefs): Promise<void> {
     isImageScanBusy = false;
   }
 }
-

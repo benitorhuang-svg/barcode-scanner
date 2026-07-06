@@ -3,10 +3,11 @@
  * and coordinates between ScannerEngine and UI state.
  */
 
-import { ScannerEngine, type ScanResult } from '../core/scanner-engine';
+import { ingestScanResult } from '../application/scanning/scan-ingestion-service';
 import { playBeep } from '../core/audio';
-import { isScanTextFragment } from '../core/scan-result-filter';
-import { scanStore } from '../state/scan-store';
+import { ScannerEngine } from '../core/scanner-engine';
+import { StableScanPolicy } from '../domain/scanning/stable-scan-policy';
+import type { ScanResult } from '../domain/scanning/scan-result';
 import type { DomRefs } from './dom-refs';
 import { showToast } from './toast';
 import { updateLastScanBanner } from './ui-helpers';
@@ -15,15 +16,15 @@ const DEBOUNCE_MS = 2000;
 const DUPLICATE_COOLDOWN_MS = 5000;
 const STABLE_SCAN_WINDOW_MS = 1200;
 const STABLE_SCAN_REQUIRED_HITS = 2;
+const scanPolicy = new StableScanPolicy({
+  stableWindowMs: STABLE_SCAN_WINDOW_MS,
+  stableRequiredHits: STABLE_SCAN_REQUIRED_HITS,
+  repeatedScanDebounceMs: DEBOUNCE_MS,
+  duplicateNoticeCooldownMs: DUPLICATE_COOLDOWN_MS,
+});
 
 let stream: MediaStream | null = null;
 let engine: ScannerEngine | null = null;
-let lastScanText = '';
-let lastScanTime = 0;
-let pendingScanText = '';
-let pendingScanFormat = '';
-let pendingScanHits = 0;
-let pendingScanLastSeen = 0;
 let isStarting = false;
 let shouldRun = false;
 
@@ -75,7 +76,7 @@ export async function startScanner(refs: DomRefs): Promise<void> {
 
 export function stopScanner(refs: DomRefs): void {
   shouldRun = false;
-  resetPendingScan();
+  scanPolicy.resetPending();
   engine?.stop();
   engine = null;
 
@@ -97,26 +98,24 @@ export function stopScanner(refs: DomRefs): void {
 
 function handleScanResult(result: ScanResult, refs: DomRefs): void {
   const now = Date.now();
-  const stableResult = getStableScanResult(result, now);
+  const stableResult = scanPolicy.resolveStableResult(result, now);
   if (!stableResult) return;
 
   const { text, format } = stableResult;
 
   // Debounce repeated scans of the same barcode
-  if (text === lastScanText && now - lastScanTime < DEBOUNCE_MS) return;
+  if (scanPolicy.shouldSuppressRepeatedScan(text, now)) return;
 
-  // Duplicate filter
-  if (refs.chkDuplicate.checked && scanStore.hasDuplicate(text)) {
-    if (text === lastScanText && now - lastScanTime < DUPLICATE_COOLDOWN_MS)
-      return;
-    lastScanTime = now;
-    lastScanText = text;
+  const ingestResult = ingestScanResult(stableResult, {
+    filterDuplicates: refs.chkDuplicate.checked,
+  });
+  if (ingestResult.status === 'duplicate') {
+    if (scanPolicy.shouldSuppressDuplicateNotice(text, now)) return;
     showToast(`⚠️ 已過濾重複條碼：${text}`);
     return;
   }
 
-  lastScanTime = now;
-  lastScanText = text;
+  scanPolicy.markAccepted(text, now);
 
   // Visual flash
   refs.videoContainer.classList.remove('flash');
@@ -126,65 +125,8 @@ function handleScanResult(result: ScanResult, refs: DomRefs): void {
   // Audio feedback
   if (refs.chkSound.checked) playBeep();
 
-  // Persist result
-  scanStore.add(format, text);
-
   // Update last-scan banner
   updateLastScanBanner(refs, text, format);
-}
-
-function getStableScanResult(
-  result: ScanResult,
-  now: number,
-): ScanResult | null {
-  const text = result.text.trim();
-  if (!text) return null;
-
-  const isExpired = now - pendingScanLastSeen > STABLE_SCAN_WINDOW_MS;
-
-  if (!pendingScanText || isExpired) {
-    setPendingScan(result.format, text, now);
-    return null;
-  }
-
-  if (text === pendingScanText) {
-    pendingScanHits += 1;
-    pendingScanLastSeen = now;
-
-    if (pendingScanHits < STABLE_SCAN_REQUIRED_HITS) return null;
-
-    return {
-      text: pendingScanText,
-      format: pendingScanFormat,
-    };
-  }
-
-  if (isScanTextFragment(pendingScanText, text)) {
-    setPendingScan(result.format, text, now);
-    return null;
-  }
-
-  if (isScanTextFragment(text, pendingScanText)) {
-    pendingScanLastSeen = now;
-    return null;
-  }
-
-  setPendingScan(result.format, text, now);
-  return null;
-}
-
-function setPendingScan(format: string, text: string, now: number): void {
-  pendingScanText = text;
-  pendingScanFormat = format;
-  pendingScanHits = 1;
-  pendingScanLastSeen = now;
-}
-
-function resetPendingScan(): void {
-  pendingScanText = '';
-  pendingScanFormat = '';
-  pendingScanHits = 0;
-  pendingScanLastSeen = 0;
 }
 
 function handleCameraError(err: unknown): void {

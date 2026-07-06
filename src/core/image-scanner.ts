@@ -5,10 +5,12 @@
  */
 
 import type { BarcodeDetector } from 'barcode-detector/pure';
+import {
+  compactScanResults,
+  type ScanResult,
+} from '../domain/scanning/scan-result';
 import { SUPPORTED_BARCODE_FORMATS } from './barcode-formats';
 import { getFormatName } from './format-map';
-import { compactScanResults } from './scan-result-filter';
-import type { ScanResult } from './scanner-engine';
 
 const MIN_SCAN_SIZE = 800;
 const MAX_SCAN_SIZE = 1800;

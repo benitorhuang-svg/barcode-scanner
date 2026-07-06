@@ -88,3 +88,19 @@
 .row-enter {
   animation: rowSlide 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .blob {
+    animation: none !important;
+    will-change: auto;
+  }
+}
