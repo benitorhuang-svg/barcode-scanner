@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local Certificates & Tools
+*.pem
+mkcert.exe
+install-cert.bat
+qr-server.js
