@@ -3,12 +3,12 @@ import {
   createQrCanvasOptions,
   createQrSvgOptions,
   type JsBarcodeOptions,
-} from '../../application/generation/barcode-render-options';
+} from './barcode-render-options';
 import {
   isQrFormat,
   previewTextForFormat,
   type GeneratorConfig,
-} from '../../domain/generation/barcode-generation';
+} from '@/domain/generation/barcode-generation';
 
 type JsBarcodeFn = (
   target: HTMLCanvasElement | SVGElement,

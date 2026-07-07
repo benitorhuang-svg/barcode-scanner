@@ -1,10 +1,17 @@
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
+import { fileURLToPath, URL } from 'node:url';
+
 const appBase = '/barcode-scanner/';
 
 export default defineConfig({
   base: appBase,
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url))
+    }
+  },
   plugins: [
     VitePWA({
       registerType: 'autoUpdate',

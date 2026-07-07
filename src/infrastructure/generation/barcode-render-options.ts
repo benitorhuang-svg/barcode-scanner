@@ -1,7 +1,7 @@
 import {
   type BarcodeFormat,
   type GeneratorConfig,
-} from '../../domain/generation/barcode-generation';
+} from '@/domain/generation/barcode-generation';
 
 export interface JsBarcodeOptions {
   format: BarcodeFormat;
@@ -43,10 +43,9 @@ export function createQrCanvasOptions(
   };
 }
 
-export function createQrSvgOptions(config: GeneratorConfig): Omit<
-  QrCanvasOptions,
-  'width'
-> {
+export function createQrSvgOptions(
+  config: GeneratorConfig,
+): Omit<QrCanvasOptions, 'width'> {
   return {
     margin: config.margin,
     errorCorrectionLevel: config.errorCorrection,

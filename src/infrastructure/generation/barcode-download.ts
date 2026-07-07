@@ -2,8 +2,8 @@ import {
   barcodeDownloadFilename,
   downloadMimeType,
   type GeneratorConfig,
-} from '../../domain/generation/barcode-generation';
-import { downloadBlob, downloadDataUrl } from '../browser/download-file';
+} from '@/domain/generation/barcode-generation';
+import { downloadBlob, downloadDataUrl } from '@/infrastructure/browser/download-file';
 
 export function downloadBarcodeSvg(
   svgContent: string,

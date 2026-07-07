@@ -1,9 +1,3 @@
-/**
- * Barcode format name mapping.
- * Translates ZXing numeric codes and BarcodeDetector format strings
- * into human-readable labels.
- */
-
 const ZXING_NUMERIC_MAP: Record<string, string> = {
   '0': 'Aztec',
   '1': 'PDF417',
@@ -29,20 +23,14 @@ interface FormatPattern {
   label: string;
 }
 
-/** Pre-normalized at module load to avoid repeated regex work per scan frame. */
 const STRING_PATTERNS: FormatPattern[] = [
   { normalizedKeyword: '128', label: 'Code 128' },
   { normalizedKeyword: '39', label: 'Code 39' },
   { normalizedKeyword: '93', label: 'Code 93' },
   { normalizedKeyword: 'ean13', label: 'EAN-13' },
-  { normalizedKeyword: 'ean13', label: 'EAN-13' },
-  { normalizedKeyword: 'ean13', label: 'EAN-13' },
-  { normalizedKeyword: 'ean8', label: 'EAN-8' },
   { normalizedKeyword: 'ean8', label: 'EAN-8' },
   { normalizedKeyword: 'qr', label: 'QR Code' },
   { normalizedKeyword: 'upca', label: 'UPC-A' },
-  { normalizedKeyword: 'upca', label: 'UPC-A' },
-  { normalizedKeyword: 'upce', label: 'UPC-E' },
   { normalizedKeyword: 'upce', label: 'UPC-E' },
   { normalizedKeyword: 'itf', label: 'ITF' },
   { normalizedKeyword: 'codabar', label: 'Codabar' },
@@ -58,8 +46,8 @@ export function getFormatName(format: unknown): string {
   }
 
   const normalized = str.toLowerCase().replace(/[\s_-]/g, '');
-  const match = STRING_PATTERNS.find((p) =>
-    normalized.includes(p.normalizedKeyword),
+  const match = STRING_PATTERNS.find(pattern =>
+    normalized.includes(pattern.normalizedKeyword),
   );
 
   return match?.label ?? str;

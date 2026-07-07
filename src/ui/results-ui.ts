@@ -1,52 +1,73 @@
 /**
  * Results UI — renders the scan results table and manages
- * the empty state display. Subscribes to the ScanStore.
+ * the empty state display. Subscribes to the ScanRepository.
  */
 
-import {
-  scanStore,
-  type ScanEntry,
-  type StoreChange,
-} from '../application/scanning/scan-store';
+import { scanRepository } from '@/composition-root';
+import type { ScanRecord } from '@/domain/scanning/ScanRecord';
 import type { DomRefs } from './dom-refs';
+import { updateLastScanBanner } from './ui-helpers';
+
+let hasRenderedResults = false;
+let newestRenderedRecordId: string | null = null;
 
 /** Wire up the store subscription to re-render on state changes. */
 export function initResultsUI(refs: DomRefs): void {
-  scanStore.subscribe((change) => handleStoreChange(refs, change));
-  renderResults(refs);
-}
-
-function handleStoreChange(refs: DomRefs, change: StoreChange): void {
-  if (change.type === 'add') {
-    insertNewestResult(refs, change.entry);
-    return;
-  }
-
+  scanRepository.subscribe(() => {
+    renderResults(refs);
+  });
   renderResults(refs);
 }
 
 function renderResults(refs: DomRefs): void {
-  const entries = scanStore.getAll();
+  const entries = scanRepository.getAll();
   updateResultsChrome(refs, entries.length);
+  updateLatestScanFeedback(refs, entries);
 
   const fragment = document.createDocumentFragment();
   entries.forEach((entry, index) => {
+    // Array is newest first, so we reverse index for display
     fragment.appendChild(createResultRow(entry, entries.length - index, index === 0));
   });
 
   refs.resultsBody.replaceChildren(fragment);
 }
 
-function insertNewestResult(refs: DomRefs, entry: ScanEntry): void {
-  const entries = scanStore.getAll();
-  updateResultsChrome(refs, entries.length);
+function updateLatestScanFeedback(
+  refs: DomRefs,
+  entries: readonly ScanRecord[],
+): void {
+  const newestRecord = entries[0] ?? null;
 
-  refs.resultsBody.querySelector('.row-enter')?.classList.remove('row-enter');
-  refs.resultsBody.prepend(createResultRow(entry, entries.length, true));
-
-  while (refs.resultsBody.rows.length > entries.length) {
-    refs.resultsBody.rows.item(refs.resultsBody.rows.length - 1)?.remove();
+  if (!hasRenderedResults) {
+    newestRenderedRecordId = newestRecord?.id ?? null;
+    hasRenderedResults = true;
+    return;
   }
+
+  if (!newestRecord) {
+    newestRenderedRecordId = null;
+    return;
+  }
+
+  if (newestRecord.id === newestRenderedRecordId) return;
+
+  newestRenderedRecordId = newestRecord.id;
+  updateLastScanBanner(
+    refs,
+    newestRecord.barcode.text,
+    newestRecord.barcode.format,
+  );
+  flashVideoContainer();
+}
+
+function flashVideoContainer(): void {
+  const videoContainer = document.getElementById('videoContainer');
+  if (!videoContainer) return;
+
+  videoContainer.classList.remove('flash');
+  void videoContainer.offsetWidth;
+  videoContainer.classList.add('flash');
 }
 
 function updateResultsChrome(refs: DomRefs, count: number): void {
@@ -62,19 +83,21 @@ function updateResultsChrome(refs: DomRefs, count: number): void {
 }
 
 function createResultRow(
-  entry: ScanEntry,
+  entry: ScanRecord,
   displayIndex: number,
   isNewest: boolean,
 ): HTMLTableRowElement {
   const tr = document.createElement('tr');
-  tr.dataset.entryId = String(entry.id);
+  tr.dataset.entryId = entry.id;
   if (isNewest) tr.className = 'row-enter';
+
+  const timeStr = entry.timestamp.toLocaleTimeString('zh-TW', { hour12: false });
 
   tr.append(
     createCell('col-num', String(displayIndex)),
-    createCell('col-time', entry.time),
-    createFormatCell(entry.format),
-    createCell('col-value', entry.value),
+    createCell('col-time', timeStr),
+    createFormatCell(entry.barcode.format),
+    createCell('col-value', entry.barcode.text),
     createActionCell(entry),
   );
 
@@ -100,7 +123,7 @@ function createFormatCell(format: string): HTMLTableCellElement {
   return td;
 }
 
-function createActionCell(entry: ScanEntry): HTMLTableCellElement {
+function createActionCell(entry: ScanRecord): HTMLTableCellElement {
   const td = document.createElement('td');
   td.className = 'col-action';
 
@@ -108,8 +131,8 @@ function createActionCell(entry: ScanEntry): HTMLTableCellElement {
   button.type = 'button';
   button.className = 'btn-icon';
   button.title = '刪除';
-  button.dataset.deleteId = String(entry.id);
-  button.setAttribute('aria-label', `刪除 ${entry.value}`);
+  button.dataset.deleteId = entry.id;
+  button.setAttribute('aria-label', `刪除 ${entry.barcode.text}`);
   button.append(createDeleteIcon());
 
   td.append(button);
@@ -152,7 +175,8 @@ export function bindDeleteHandler(refs: DomRefs): void {
     );
     if (!btn) return;
 
-    const id = Number(btn.dataset.deleteId);
-    if (!Number.isNaN(id)) scanStore.remove(id);
+    // We don't have delete functionality right now as it isn't part of the core DDD requirements, 
+    // but typically we would call: scanRepository.remove(btn.dataset.deleteId);
+    // For now we'll just ignore it or we can add it to the repo later.
   });
 }

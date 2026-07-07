@@ -49,6 +49,10 @@ export function getDomRefs() {
 
     chkSound: getEl<HTMLInputElement>('chkSound'),
     chkDuplicate: getEl<HTMLInputElement>('chkDuplicate'),
+    chkTorch: getEl<HTMLInputElement>('chkTorch'),
+    btnTorchContainer: getEl<HTMLLabelElement>('btnTorchContainer'),
+    zoomContainer: getEl<HTMLDivElement>('zoomContainer'),
+    zoomSlider: getEl<HTMLInputElement>('zoomSlider'),
 
     pasteZone: getEl<HTMLDivElement>('pasteZone'),
     pastePrompt: getEl<HTMLDivElement>('pastePrompt'),

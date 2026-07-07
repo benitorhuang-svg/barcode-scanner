@@ -81,6 +81,9 @@ npm run dev              # 啟動開發伺服器
 npm run build            # type-check 後產出 production build
 npm run preview          # 預覽 production build
 npm run type-check       # TypeScript 型別檢查
+npm run test             # Vitest 單元測試
+npm run test:e2e         # Playwright smoke test
+npm run test:e2e:install # 安裝 Playwright Chromium
 npm run lint             # ESLint 檢查，警告視為失敗
 npm run lint:fix         # ESLint 自動修復
 npm run fonts:download   # 重新下載並裁切本機 Google Fonts
@@ -102,19 +105,22 @@ barcode-scanner/
 ├── public/                   PWA icon、分享圖與公開靜態資產
 ├── scripts/                  專案維護腳本
 ├── src/assets/fonts/         本機 Google Fonts woff2
-├── src/core/                 掃描引擎、圖片解析、條碼格式映射
-├── src/state/                掃描紀錄 store
+├── src/application/          use cases、ports 與 application services
+├── src/domain/               掃描與產生器 domain model / policy
+├── src/infrastructure/       Webcam、Worker、IndexedDB、音效、下載 adapters
 ├── src/styles/               design tokens、layout、元件樣式
-└── src/ui/                   DOM refs、掃描 UI、結果表、匯出、toast
+├── src/ui/                   DOM refs、掃描 UI、結果表、匯出、toast
+└── e2e/                      Playwright smoke tests
 ```
 
 ## 優化重點
 
-- 掃描格式集中在 `src/core/barcode-formats.ts`，避免多處維護。
-- 即時掃描 loop 使用固定間隔 timer，減少每幀輪詢成本。
-- 圖片解析與即時掃描共用格式映射邏輯。
+- 掃描格式集中在 `src/domain/scanning/supported-barcode-formats.ts`，避免多處維護。
+- 即時掃描透過 application service 編排 Webcam frame、Worker decoder 與 ingestion use case。
+- 圖片解析與即時掃描共用 `IngestScanResultUseCase`，去重與保存規則一致。
 - 結果表使用 DOM node 建立，避免字串 HTML 注入風險。
-- 掃描紀錄用 `Map` 維護重複值計數，重複過濾不需要每次掃描整個陣列。
+- 掃描紀錄透過 repository port 管理，UI 只訂閱結果變更。
+- 匯出 CSV 的 BOM、header、escape 規則集中在 domain policy。
 - Google Fonts 已改成本機資產，並依目前 UI 文字裁切 unicode range。
 - `fonts.css` 會合併同檔案的 variable font weight range，降低 CSS 體積。
 - PWA manifest 使用正確 `start_url`、`scope` 與 `/barcode-scanner/` base。
@@ -150,6 +156,8 @@ barcode-scanner/
 npm run lint:fix
 npm run lint
 npm run type-check
+npm run test
+npm run test:e2e
 npm run build
 ```
 

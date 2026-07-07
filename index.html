@@ -82,7 +82,7 @@
         <div class="tab-pane active" id="tab-webcam" role="tabpanel" aria-labelledby="tab-webcam">
           <section class="scanner-section">
             <div class="scanner-header">
-              <div class="settings-bar">
+              <div class="settings-bar" style="flex-wrap: wrap;">
                 <label class="btn-toggle">
                   <input type="checkbox" id="chkSound" checked role="switch" aria-labelledby="labelSound" style="display: none;">
                   <span id="labelSound" style="display: inline-flex; align-items: center; gap: 4px;">
@@ -102,6 +102,19 @@
                     過濾重複
                   </span>
                 </label>
+                <label class="btn-toggle" id="btnTorchContainer" style="display:none;">
+                  <input type="checkbox" id="chkTorch" role="switch" aria-labelledby="labelTorch" style="display: none;">
+                  <span id="labelTorch" style="display: inline-flex; align-items: center; gap: 4px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                    手電筒
+                  </span>
+                </label>
+                <div class="zoom-slider-container" id="zoomContainer" style="display: none; align-items: center; gap: 8px; margin-left: auto;">
+                  <span style="font-size: 0.85rem; color: var(--text-secondary);">縮放</span>
+                  <input type="range" id="zoomSlider" min="1" max="5" step="0.1" value="1" style="width: 100px;">
+                </div>
               </div>
               <div class="scanner-controls">
                 <button id="btnStart" class="btn btn-primary">

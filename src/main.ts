@@ -14,6 +14,8 @@ import './styles/components.css';
 import './styles/paste.css';
 import './styles/animations.css';
 
+import { scanRepository } from '@/composition-root';
+
 import { getDomRefs, type DomRefs } from './ui/dom-refs';
 import { initResultsUI, bindDeleteHandler } from './ui/results-ui';
 import { initPasteUI } from './ui/paste-ui';
@@ -154,10 +156,13 @@ function registerPWAWhenIdle(): void {
   });
 }
 
-function main(): void {
+async function main(): Promise<void> {
   const refs = getDomRefs();
 
   initToast(refs.toast);
+
+  // Initialize DB before UI
+  await scanRepository.init();
 
   // Initialize UI components
   initTabsUI(refs);

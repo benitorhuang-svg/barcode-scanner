@@ -1,46 +1,33 @@
 /**
- * Paste UI — handles clipboard paste and file drop for image-based
+ * Paste UI - handles clipboard paste and file drop for image-based
  * barcode scanning. Listens for Ctrl+V / Cmd+V and drag-and-drop.
  */
 
-import { ingestScanResults } from '../application/scanning/scan-ingestion-service';
-import { playBeep } from '../core/audio';
+import { imageScannerService } from '@/composition-root';
+import type { IngestScanResultOutput } from '@/application/scanning/use-cases/IngestScanResult';
 import type { DomRefs } from './dom-refs';
 import { showToast } from './toast';
-import { updateLastScanBanner } from './ui-helpers';
 
 let isImageScanBusy = false;
-let imageScannerPromise: Promise<typeof import('../core/image-scanner')> | null =
-  null;
-
-function getImageScanner(): Promise<typeof import('../core/image-scanner')> {
-  imageScannerPromise ??= import('../core/image-scanner').catch((error) => {
-    imageScannerPromise = null;
-    throw error;
-  });
-  return imageScannerPromise;
-}
 
 /** Initialize all paste/drop event listeners. */
 export function initPasteUI(refs: DomRefs): void {
-  // Global paste (Ctrl+V)
-  document.addEventListener('paste', (e) => {
-    const items = e.clipboardData?.items;
+  document.addEventListener('paste', (event) => {
+    const items = event.clipboardData?.items;
     if (!items) return;
 
     for (const item of items) {
       if (item.type.startsWith('image/')) {
-        e.preventDefault();
+        event.preventDefault();
         const blob = item.getAsFile();
-        if (blob) handleImageBlob(blob, refs);
+        if (blob) void handleImageBlob(blob, refs);
         return;
       }
     }
   });
 
-  // Drag & drop
-  refs.pasteZone.addEventListener('dragover', (e) => {
-    e.preventDefault();
+  refs.pasteZone.addEventListener('dragover', (event) => {
+    event.preventDefault();
     refs.pasteZone.classList.add('drag-active');
   });
 
@@ -48,24 +35,23 @@ export function initPasteUI(refs: DomRefs): void {
     refs.pasteZone.classList.remove('drag-active');
   });
 
-  refs.pasteZone.addEventListener('drop', (e) => {
-    e.preventDefault();
+  refs.pasteZone.addEventListener('drop', (event) => {
+    event.preventDefault();
     refs.pasteZone.classList.remove('drag-active');
 
-    const file = e.dataTransfer?.files[0];
+    const file = event.dataTransfer?.files[0];
     if (file?.type.startsWith('image/')) {
-      handleImageBlob(file, refs);
-    } else {
-      showToast('⚠️ 請拖放圖片檔案（PNG、JPG 等）');
+      void handleImageBlob(file, refs);
+      return;
     }
+
+    showToast('請拖放圖片檔案（PNG、JPG 等）');
   });
 
-  // Click to select file
   refs.pasteZone.addEventListener('click', () => refs.fileInput.click());
 
-  // Clear photo button
-  refs.btnClearPaste.addEventListener('click', (e) => {
-    e.stopPropagation(); // Prevent opening file dialog
+  refs.btnClearPaste.addEventListener('click', (event) => {
+    event.stopPropagation();
     refs.pastePreview.src = '';
     refs.pastePreviewWrap.style.display = 'none';
     refs.pastePrompt.style.display = 'block';
@@ -74,12 +60,10 @@ export function initPasteUI(refs: DomRefs): void {
 
   refs.fileInput.addEventListener('change', () => {
     const file = refs.fileInput.files?.[0];
-    if (file) handleImageBlob(file, refs);
+    if (file) void handleImageBlob(file, refs);
     refs.fileInput.value = '';
   });
 }
-
-/* ---- Internal ---- */
 
 async function handleImageBlob(blob: Blob, refs: DomRefs): Promise<void> {
   if (isImageScanBusy) {
@@ -88,48 +72,49 @@ async function handleImageBlob(blob: Blob, refs: DomRefs): Promise<void> {
   }
 
   isImageScanBusy = true;
+  showPastePreview(blob, refs);
 
-  // Show preview
+  try {
+    const result = await imageScannerService.scanImage(blob, {
+      duplicateFilterEnabled: refs.chkDuplicate.checked,
+      soundEnabled: refs.chkSound.checked,
+    });
+
+    if (result.totalCount === 0) {
+      showToast('圖片中未偵測到任何條碼');
+      return;
+    }
+
+    showToast(createImageScanMessage(result));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    showToast(`圖片解析失敗：${message}`);
+  } finally {
+    isImageScanBusy = false;
+  }
+}
+
+function showPastePreview(blob: Blob, refs: DomRefs): void {
   const url = URL.createObjectURL(blob);
   refs.pastePreview.src = url;
   refs.pastePrompt.style.display = 'none';
   refs.pastePreviewWrap.style.display = 'block';
   refs.pastePreview.onload = () => URL.revokeObjectURL(url);
   refs.pastePreview.onerror = () => URL.revokeObjectURL(url);
+}
 
-  try {
-    const { scanImageBlob } = await getImageScanner();
-    const results = await scanImageBlob(blob);
-
-    if (results.length === 0) {
-      showToast('⚠️ 圖片中未偵測到任何條碼');
-      return;
-    }
-
-    const ingestResult = ingestScanResults(results, {
-      filterDuplicates: refs.chkDuplicate.checked,
-    });
-
-    if (refs.chkSound.checked) playBeep();
-
-    // Update last-scan banner with first result
-    if (ingestResult.firstResult) {
-      updateLastScanBanner(
-        refs,
-        ingestResult.firstResult.text,
-        ingestResult.firstResult.format,
-      );
-    }
-
-    const msg =
-      ingestResult.duplicateCount > 0
-        ? `✅ 偵測到 ${results.length} 組條碼（${ingestResult.duplicateCount} 組重複已過濾）`
-        : `✅ 成功掃描 ${ingestResult.addedCount} 組條碼`;
-    showToast(msg);
-  } catch (err) {
-    const error = err as Error;
-    showToast(`❌ ${error.message}`);
-  } finally {
-    isImageScanBusy = false;
+function createImageScanMessage(result: IngestScanResultOutput): string {
+  if (result.acceptedCount === 0 && result.duplicateCount > 0) {
+    return `已略過 ${result.duplicateCount} 筆重複條碼`;
   }
+
+  if (result.duplicateCount > 0) {
+    return `偵測到 ${result.totalCount} 筆條碼，新增 ${result.acceptedCount} 筆，略過 ${result.duplicateCount} 筆重複`;
+  }
+
+  if (result.acceptedCount > 0) {
+    return `已掃描 ${result.acceptedCount} 筆條碼`;
+  }
+
+  return '未新增任何條碼';
 }

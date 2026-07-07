@@ -1,71 +1,84 @@
 /**
- * Scanner UI — manages webcam lifecycle, scan overlay,
- * and coordinates between ScannerEngine and UI state.
+ * Scanner UI — manages UI events for the scanner tab.
+ * Delegates actual camera and decoding logic to WebcamScannerAppService.
  */
 
-import { ingestScanResult } from '../application/scanning/scan-ingestion-service';
-import { playBeep } from '../core/audio';
-import { ScannerEngine } from '../core/scanner-engine';
-import { StableScanPolicy } from '../domain/scanning/stable-scan-policy';
-import type { ScanResult } from '../domain/scanning/scan-result';
+import { webcamScannerService } from '@/composition-root';
 import type { DomRefs } from './dom-refs';
 import { showToast } from './toast';
-import { updateLastScanBanner } from './ui-helpers';
 
-const DEBOUNCE_MS = 2000;
-const DUPLICATE_COOLDOWN_MS = 5000;
-const STABLE_SCAN_WINDOW_MS = 1200;
-const STABLE_SCAN_REQUIRED_HITS = 2;
-const scanPolicy = new StableScanPolicy({
-  stableWindowMs: STABLE_SCAN_WINDOW_MS,
-  stableRequiredHits: STABLE_SCAN_REQUIRED_HITS,
-  repeatedScanDebounceMs: DEBOUNCE_MS,
-  duplicateNoticeCooldownMs: DUPLICATE_COOLDOWN_MS,
-});
-
-let stream: MediaStream | null = null;
-let engine: ScannerEngine | null = null;
 let isStarting = false;
-let shouldRun = false;
 
 export async function startScanner(refs: DomRefs): Promise<void> {
-  if (engine?.isActive() || isStarting) return;
+  if (webcamScannerService.state$.value.isActive || isStarting) return;
 
   isStarting = true;
-  shouldRun = true;
 
   try {
     refs.btnStart.disabled = true;
 
-    const newStream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: 'environment',
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
-      },
-    });
-
-    // Check if stopScanner was called while waiting for permission
-    if (!shouldRun) {
-      newStream.getTracks().forEach((t) => t.stop());
-      refs.btnStart.disabled = false;
+    // The service handles getUserMedia, stream mapping, and RxJS pipeline internally
+    await webcamScannerService.start(refs.video);
+    
+    // Check if the service started successfully
+    if (!webcamScannerService.state$.value.isActive) {
+      handleCameraError(webcamScannerService.state$.value.error);
+      stopScanner(refs);
       return;
     }
 
-    stream = newStream;
-    refs.video.srcObject = stream;
     refs.video.style.display = 'block';
     refs.videoPlaceholder.style.display = 'none';
     refs.scanOverlay.style.display = 'flex';
-
-    await refs.video.play();
-
     refs.btnStop.disabled = false;
 
-    engine = new ScannerEngine(refs.video, (result) =>
-      handleScanResult(result, refs),
-    );
-    await engine.start();
+    // Sync settings initially
+    webcamScannerService.setDuplicateFilter(refs.chkDuplicate.checked);
+    webcamScannerService.setSoundEnabled(refs.chkSound.checked);
+
+    // Hardware Controls Init
+    const capabilities = webcamScannerService.getCapabilities();
+    if (capabilities) {
+      if ('torch' in capabilities) {
+        refs.btnTorchContainer.style.display = 'inline-flex';
+        // Remove old listener to avoid duplicates if started multiple times
+        const clone = refs.chkTorch.cloneNode(true);
+        refs.chkTorch.parentNode?.replaceChild(clone, refs.chkTorch);
+        refs.chkTorch = clone as HTMLInputElement;
+        refs.chkTorch.checked = false;
+        
+        refs.chkTorch.addEventListener('change', () => {
+          void webcamScannerService.toggleTorch().then(enabled => {
+            refs.chkTorch.checked = enabled;
+          });
+        });
+      } else {
+        refs.btnTorchContainer.style.display = 'none';
+      }
+
+      if ('zoom' in capabilities) {
+        const zoomCap = (capabilities as Record<string, unknown>).zoom as { min?: number, max?: number, step?: number } | undefined;
+        if (zoomCap && typeof zoomCap.min === 'number' && typeof zoomCap.max === 'number') {
+          refs.zoomContainer.style.display = 'inline-flex';
+          refs.zoomSlider.min = zoomCap.min.toString();
+          refs.zoomSlider.max = zoomCap.max.toString();
+          refs.zoomSlider.step = zoomCap.step?.toString() ?? '0.1';
+          refs.zoomSlider.value = zoomCap.min.toString();
+
+          const clone = refs.zoomSlider.cloneNode(true);
+          refs.zoomSlider.parentNode?.replaceChild(clone, refs.zoomSlider);
+          refs.zoomSlider = clone as HTMLInputElement;
+
+          refs.zoomSlider.addEventListener('input', (e) => {
+            const val = parseFloat((e.target as HTMLInputElement).value);
+            void webcamScannerService.setZoom(val);
+          });
+        }
+      } else {
+        refs.zoomContainer.style.display = 'none';
+      }
+    }
+
   } catch (err) {
     stopScanner(refs);
     handleCameraError(err);
@@ -75,15 +88,7 @@ export async function startScanner(refs: DomRefs): Promise<void> {
 }
 
 export function stopScanner(refs: DomRefs): void {
-  shouldRun = false;
-  scanPolicy.resetPending();
-  engine?.stop();
-  engine = null;
-
-  if (stream) {
-    stream.getTracks().forEach((t) => t.stop());
-    stream = null;
-  }
+  webcamScannerService.stop();
 
   refs.video.pause();
   refs.video.srcObject = null;
@@ -92,50 +97,20 @@ export function stopScanner(refs: DomRefs): void {
   refs.scanOverlay.style.display = 'none';
   refs.btnStart.disabled = false;
   refs.btnStop.disabled = true;
+  refs.btnTorchContainer.style.display = 'none';
+  refs.zoomContainer.style.display = 'none';
 }
 
 /* ---- Internal ---- */
 
-function handleScanResult(result: ScanResult, refs: DomRefs): void {
-  const now = Date.now();
-  const stableResult = scanPolicy.resolveStableResult(result, now);
-  if (!stableResult) return;
-
-  const { text, format } = stableResult;
-
-  // Debounce repeated scans of the same barcode
-  if (scanPolicy.shouldSuppressRepeatedScan(text, now)) return;
-
-  const ingestResult = ingestScanResult(stableResult, {
-    filterDuplicates: refs.chkDuplicate.checked,
-  });
-  if (ingestResult.status === 'duplicate') {
-    if (scanPolicy.shouldSuppressDuplicateNotice(text, now)) return;
-    showToast(`⚠️ 已過濾重複條碼：${text}`);
-    return;
-  }
-
-  scanPolicy.markAccepted(text, now);
-
-  // Visual flash
-  refs.videoContainer.classList.remove('flash');
-  void refs.videoContainer.offsetWidth; // force reflow
-  refs.videoContainer.classList.add('flash');
-
-  // Audio feedback
-  if (refs.chkSound.checked) playBeep();
-
-  // Update last-scan banner
-  updateLastScanBanner(refs, text, format);
-}
-
 function handleCameraError(err: unknown): void {
-  const error = err as { name?: string; message?: string };
-  if (error.name === 'NotAllowedError') {
+  const errorMsg = typeof err === 'string' ? err : (err as Error)?.message ?? 'Unknown error';
+  
+  if (errorMsg.includes('Permission denied')) {
     showToast('❌ 攝影機權限被拒絕，請在瀏覽器設定中允許');
-  } else if (error.name === 'NotFoundError') {
+  } else if (errorMsg.includes('NotFoundError') || errorMsg.includes('Requested device not found')) {
     showToast('❌ 找不到攝影機裝置');
   } else {
-    showToast(`❌ 無法開啟攝影機：${error.message ?? '未知錯誤'}`);
+    showToast(`❌ 無法開啟攝影機：${errorMsg}`);
   }
 }

@@ -6,18 +6,8 @@ import {
   type DownloadFormat,
   type ErrorCorrectionLevel,
   type GeneratorConfig,
-} from '../domain/generation/barcode-generation';
-import { loadImageFile } from '../infrastructure/browser/image-file-loader';
-import {
-  downloadBarcodeCanvas,
-  downloadBarcodeSvg,
-} from '../infrastructure/generation/barcode-download';
-import {
-  drawCenteredLogo,
-  renderBarcodePreview,
-  renderBarcodeToCanvas,
-  renderBarcodeToSvg,
-} from '../infrastructure/generation/barcode-renderer';
+} from '@/domain/generation/barcode-generation';
+import { barcodeGeneratorService } from '@/composition-root';
 import type { DomRefs } from './dom-refs';
 import { showToast } from './toast';
 import { getCheckedRadioValue, getCheckedRadioLabel } from './ui-helpers';
@@ -156,7 +146,7 @@ export function initGeneratorUI(refs: DomRefs): void {
 
 async function loadLogoFile(file: File, refs: DomRefs): Promise<void> {
   try {
-    const { image, dataUrl } = await loadImageFile(file);
+    const { image, dataUrl } = await barcodeGeneratorService.loadLogoFile(file);
     currentLogoData = image;
     refs.logoPreviewImg.src = dataUrl;
     refs.logoUploadPrompt.style.display = 'none';
@@ -273,7 +263,7 @@ async function updateAppearancePreview(
 ): Promise<void> {
   const config = readGeneratorConfig(refs);
   try {
-    await renderBarcodePreview(
+    await barcodeGeneratorService.renderAppearancePreview(
       refs.appearancePreviewCanvas,
       config,
       () => requestId === previewRequestId,
@@ -300,18 +290,14 @@ async function generateBarcode(
   const config = readGeneratorConfig(refs);
 
   try {
-    const rendered = await renderBarcodeToCanvas(
+    const rendered = await barcodeGeneratorService.renderBarcodeOutput(
       refs.qrCanvas,
       text,
       config,
-      'output',
+      currentLogoData,
       () => requestId === generateRequestId,
     );
     if (!rendered || requestId !== generateRequestId) return;
-
-    if (currentLogoData && isQrFormat(config.format)) {
-      drawCenteredLogo(refs.qrCanvas, currentLogoData, config.bgColor);
-    }
 
     refs.qrPreviewWrap.style.display = 'flex';
     refs.qrEmptyState.style.display = 'none';
@@ -336,11 +322,5 @@ async function downloadBarcode(refs: DomRefs): Promise<void> {
   const text = refs.qrInput.value.trim();
   const config = readGeneratorConfig(refs);
 
-  if (config.dlFormat === 'svg') {
-    const svgContent = await renderBarcodeToSvg(text, config);
-    downloadBarcodeSvg(svgContent, config);
-    return;
-  }
-
-  downloadBarcodeCanvas(refs.qrCanvas, config);
+  await barcodeGeneratorService.downloadBarcode(refs.qrCanvas, text, config);
 }
